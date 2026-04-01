@@ -1,0 +1,217 @@
+name: Sanitizers & Fuzzing
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 2 * * *"  # Nightly at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  asan:
+    name: AddressSanitizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+
+      - name: Build with ASan
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+          cmake --build build --parallel $(nproc)
+
+      - name: Run tests with ASan
+        env:
+          ASAN_OPTIONS: "detect_leaks=1:halt_on_error=1:abort_on_error=1"
+        run: ctest --test-dir build --output-on-failure
+
+  ubsan:
+    name: UndefinedBehaviorSanitizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+
+      - name: Build with UBSan
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=undefined -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=undefined"
+          cmake --build build --parallel $(nproc)
+
+      - name: Run tests with UBSan
+        env:
+          UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:print_stacktrace=1"
+        run: ctest --test-dir build --output-on-failure
+
+  tsan:
+    name: ThreadSanitizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+
+      - name: Build with TSan
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=thread"
+          cmake --build build --parallel $(nproc)
+
+      - name: Run tests with TSan
+        env:
+          TSAN_OPTIONS: "halt_on_error=1:abort_on_error=1"
+        run: ctest --test-dir build --output-on-failure
+
+  asan-ubsan:
+    name: ASan + UBSan Combined
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+
+      - name: Build with ASan + UBSan
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -g" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+          cmake --build build --parallel $(nproc)
+
+      - name: Run tests with ASan + UBSan
+        env:
+          ASAN_OPTIONS: "detect_leaks=1:halt_on_error=1:abort_on_error=1"
+          UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:print_stacktrace=1"
+        run: ctest --test-dir build --output-on-failure
+
+  valgrind:
+    name: Valgrind
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev valgrind
+
+      - name: Build for Valgrind
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_CXX_FLAGS="-g -O1"
+          cmake --build build --parallel $(nproc)
+
+      - name: Run tests under Valgrind
+        run: |
+          cd build
+          for test_bin in tests/test_*; do
+            if [ -f "$test_bin" ] && [ -x "$test_bin" ]; then
+              echo "==> Valgrind: $test_bin"
+              valgrind \
+                --leak-check=full \
+                --show-leak-kinds=all \
+                --track-origins=yes \
+                --error-exitcode=1 \
+                --suppressions=../fuzz/valgrind.supp \
+                "./$test_bin" || exit 1
+            fi
+          done
+
+  fuzz:
+    name: Fuzz Testing (AFL++)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev afl++
+
+      - name: Build fuzz targets with AFL++
+        run: |
+          cmake -B build/fuzz -S fuzz \
+            -DCMAKE_C_COMPILER=afl-clang-fast \
+            -DCMAKE_CXX_COMPILER=afl-clang-fast++ \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/fuzz --parallel $(nproc)
+
+      - name: Run AFL++ fuzzing
+        run: |
+          FUZZ_DURATION=120  # 2 minutes per target
+
+          declare -A TARGETS=(
+            [adblocker]="$(find build/fuzz -name fuzz_adblocker -type f -executable | head -1)"
+            [urlsanitizer]="$(find build/fuzz -name fuzz_urlsanitizer -type f -executable | head -1)"
+            [csp]="$(find build/fuzz -name fuzz_csp -type f -executable | head -1)"
+            [doh]="$(find build/fuzz -name fuzz_doh -type f -executable | head -1)"
+          )
+
+          FAILED=0
+          for name in "${!TARGETS[@]}"; do
+            binary="${TARGETS[$name]}"
+            corpus="fuzz/corpus/$name"
+            output="fuzz/output/$name"
+            mkdir -p "$output"
+
+            echo "==> Fuzzing $name for ${FUZZ_DURATION}s..."
+
+            timeout ${FUZZ_DURATION} \
+              afl-fuzz -i "$corpus" -o "$output" \
+              -V $FUZZ_DURATION \
+              -- "$binary" || true
+
+            # Check for crashes
+            if [ -d "$output/default/crashes" ] && [ "$(ls -A "$output/default/crashes" 2>/dev/null)" ]; then
+              echo "!! CRASHES FOUND for $name !!"
+              for crash in "$output/default/crashes"/*; do
+                echo "--- Crash input: $crash ---"
+                xxd "$crash" | head -20
+              done
+              FAILED=1
+            else
+              echo "==> $name: No crashes found"
+            fi
+          done
+
+          if [ $FAILED -ne 0 ]; then
+            echo "!! Fuzzing found crashes - see artifacts !!"
+            exit 1
+          fi
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crashes
+          path: fuzz/output/*/default/crashes/
+          retention-days: 30

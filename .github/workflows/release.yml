@@ -1,0 +1,266 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-latest
+          - arch: x86_64
+            runner: macos-13
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: brew install qt@6
+
+      - name: Build
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
+          cmake --build build --parallel $(sysctl -n hw.ncpu)
+
+      - name: Package .app bundle
+        run: |
+          APP="build/scowser.app"
+          MACDEPLOYQT=$(find /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
+          if [ -n "$MACDEPLOYQT" ]; then
+            "$MACDEPLOYQT" "$APP" -verbose=1
+          fi
+          codesign --force --deep --sign - "$APP"
+
+      - name: Create DMG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          hdiutil create -volname "Scowser" \
+            -srcfolder "build/scowser.app" \
+            -ov -format UDZO \
+            "Scowser-${VERSION}-macos-${{ matrix.arch }}.dmg"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: "*.dmg"
+
+  build-linux:
+    name: Linux (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev \
+            libfuse2 file
+
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build --parallel $(nproc)
+
+      - name: Run tests
+        run: |
+          cmake -B build-test -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+          cmake --build build-test --parallel $(nproc)
+          ctest --test-dir build-test --output-on-failure
+
+      - name: Create AppImage
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # Install linuxdeploy
+          curl -fSL -o linuxdeploy https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          curl -fSL -o linuxdeploy-plugin-qt https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy linuxdeploy-plugin-qt
+
+          # Create AppDir
+          DESTDIR=AppDir cmake --install build
+          mkdir -p AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
+          cp packaging/linux/scowser.desktop AppDir/usr/share/applications/
+
+          # Create a simple icon placeholder if none exists
+          if [ ! -f "resources/icons/scowser.png" ]; then
+            convert -size 256x256 xc:'#2d5016' -fill white \
+              -font Helvetica -pointsize 64 -gravity center \
+              -annotate 0 'S' AppDir/usr/share/icons/hicolor/256x256/apps/scowser.png 2>/dev/null || \
+            printf '\x89PNG\r\n\x1a\n' > AppDir/usr/share/icons/hicolor/256x256/apps/scowser.png
+          else
+            cp resources/icons/scowser.png AppDir/usr/share/icons/hicolor/256x256/apps/
+          fi
+
+          cp AppDir/usr/share/icons/hicolor/256x256/apps/scowser.png AppDir/
+
+          # Build AppImage
+          export QMAKE=$(which qmake6 2>/dev/null || which qmake)
+          OUTPUT="Scowser-${VERSION}-linux-${{ matrix.arch }}.AppImage"
+          ./linuxdeploy --appdir AppDir \
+            --plugin qt \
+            --desktop-file AppDir/usr/share/applications/scowser.desktop \
+            --output appimage || true
+
+          # Rename if linuxdeploy created a default name
+          GENERATED=$(ls Scowser*.AppImage 2>/dev/null | head -1)
+          if [ -n "$GENERATED" ] && [ "$GENERATED" != "$OUTPUT" ]; then
+            mv "$GENERATED" "$OUTPUT"
+          fi
+
+          # Fallback: create tarball if AppImage creation failed
+          if [ ! -f "$OUTPUT" ]; then
+            echo "AppImage creation failed, creating tarball instead"
+            OUTPUT="Scowser-${VERSION}-linux-${{ matrix.arch }}.tar.gz"
+            tar -czf "$OUTPUT" -C AppDir .
+          fi
+
+      - name: Create tarball
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DESTDIR=tar-root cmake --install build
+          tar -czf "Scowser-${VERSION}-linux-${{ matrix.arch }}.tar.gz" -C tar-root .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}
+          path: |
+            *.AppImage
+            *.tar.gz
+
+  release:
+    name: Create Release
+    needs: [build-macos, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for release notes
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # Get previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | grep '^v' | sed -n '2p')
+
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..${GITHUB_REF_NAME}"
+            COMPARE_URL="${{ github.server_url }}/${{ github.repository }}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
+          else
+            RANGE="${GITHUB_REF_NAME}"
+            COMPARE_URL=""
+          fi
+
+          # Build categorized changelog
+          {
+            echo "## What's Changed"
+            echo ""
+
+            # Features
+            FEATURES=$(git log "$RANGE" --pretty=format:"- %s (%h)" --grep="feat" --grep="add" --grep="new" -i)
+            if [ -n "$FEATURES" ]; then
+              echo "### New Features"
+              echo "$FEATURES"
+              echo ""
+            fi
+
+            # Fixes
+            FIXES=$(git log "$RANGE" --pretty=format:"- %s (%h)" --grep="fix" --grep="bug" -i)
+            if [ -n "$FIXES" ]; then
+              echo "### Bug Fixes"
+              echo "$FIXES"
+              echo ""
+            fi
+
+            # Security
+            SECURITY=$(git log "$RANGE" --pretty=format:"- %s (%h)" --grep="security" --grep="cve" --grep="vuln" -i)
+            if [ -n "$SECURITY" ]; then
+              echo "### Security"
+              echo "$SECURITY"
+              echo ""
+            fi
+
+            # Everything else
+            OTHER=$(git log "$RANGE" --pretty=format:"- %s (%h)" \
+              --grep="feat" --grep="add" --grep="new" --grep="fix" --grep="bug" --grep="security" --grep="cve" --grep="vuln" \
+              -i --invert-grep)
+            if [ -n "$OTHER" ]; then
+              echo "### Other Changes"
+              echo "$OTHER"
+              echo ""
+            fi
+
+            echo "## Downloads"
+            echo ""
+            echo "| Platform | File |"
+            echo "|----------|------|"
+            for f in artifacts/*; do
+              fname=$(basename "$f")
+              echo "| ${fname} | [Download](${fname}) |"
+            done
+            echo ""
+
+            echo "## Install"
+            echo ""
+            echo "**Homebrew (macOS & Linux):**"
+            echo '```bash'
+            echo "brew tap ${{ github.repository_owner }}/scowser"
+            echo "brew install scowser"
+            echo '```'
+            echo ""
+            echo "**macOS:** Download the \`.dmg\` for your architecture and drag Scowser to Applications."
+            echo ""
+            echo "**Linux:** Download the \`.AppImage\`, \`chmod +x\`, and run. Or extract the \`.tar.gz\`."
+            echo ""
+
+            if [ -n "$COMPARE_URL" ]; then
+              echo "**Full Changelog:** $COMPARE_URL"
+            fi
+          } > release_notes.md
+
+          cat release_notes.md
+
+      - name: Compute checksums
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          mv SHA256SUMS.txt ../
+          cd ..
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Scowser v${VERSION}" \
+            --notes-file release_notes.md \
+            artifacts/* \
+            SHA256SUMS.txt

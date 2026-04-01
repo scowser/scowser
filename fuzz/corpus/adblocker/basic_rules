@@ -1,0 +1,6 @@
+||doubleclick.net^
+||google-analytics.com^
+@@||example.com^
+/ads/*
+||tracker.*.com^
+||evil.com/pixel.gif

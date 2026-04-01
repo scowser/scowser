@@ -1,0 +1,114 @@
+name: Update Homebrew Formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to update formula with (e.g. v0.1.0)"
+        required: true
+        type: string
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate tag format
+        run: |
+          if [[ ! "${{ inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Tag must match format vX.Y.Z (e.g. v0.1.0)"
+            exit 1
+          fi
+
+      - name: Download release tarball and compute SHA256
+        id: sha
+        run: |
+          TAG="${{ inputs.tag }}"
+          REPO="${{ github.repository }}"
+          URL="https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz"
+
+          echo "Downloading ${URL}..."
+          curl -fSL -o release.tar.gz "${URL}"
+
+          SHA256=$(sha256sum release.tar.gz | awk '{print $1}')
+          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "SHA256: ${SHA256}"
+
+      - name: Checkout homebrew-scowser tap
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/homebrew-scowser
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update formula
+        run: |
+          FORMULA="homebrew-tap/Formula/scowser.rb"
+          mkdir -p homebrew-tap/Formula
+
+          cat > "${FORMULA}" << 'RUBY'
+          class Scowser < Formula
+            desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
+            homepage "https://github.com/OWNER/scowser"
+            url "URL_PLACEHOLDER"
+            sha256 "SHA_PLACEHOLDER"
+            license "MIT"
+
+            depends_on "cmake" => :build
+            depends_on "qt@6"
+
+            on_linux do
+              depends_on "libseccomp"
+              depends_on "pkg-config" => :build
+            end
+
+            def install
+              args = %W[
+                -DCMAKE_BUILD_TYPE=Release
+                -DCMAKE_PREFIX_PATH=#{Formula["qt@6"].opt_prefix}
+              ]
+
+              system "cmake", "-S", ".", "-B", "build", *args, *std_cmake_args
+              system "cmake", "--build", "build", "--parallel", ENV.make_jobs.to_s
+              system "cmake", "--install", "build", "--prefix", prefix
+            end
+
+            def caveats
+              <<~EOS
+                Scowser is a security-focused browser. By default:
+                  - All sessions are ephemeral (no data persists after exit)
+                  - DNS queries use DNS-over-HTTPS (Cloudflare)
+                  - Ads and trackers are blocked at the request level
+                  - All HTTP traffic is upgraded to HTTPS
+              EOS
+            end
+
+            test do
+              assert_match "Scowser", shell_output("#{bin}/scowser --version 2>&1", 0)
+            end
+          end
+          RUBY
+
+          # Strip leading whitespace from heredoc
+          sed -i 's/^          //' "${FORMULA}"
+
+          # Replace placeholders with actual values
+          REPO="${{ github.repository }}"
+          OWNER="${{ github.repository_owner }}"
+          sed -i "s|OWNER/scowser|${REPO}|g" "${FORMULA}"
+          sed -i "s|URL_PLACEHOLDER|${{ steps.sha.outputs.url }}|g" "${FORMULA}"
+          sed -i "s|SHA_PLACEHOLDER|${{ steps.sha.outputs.sha256 }}|g" "${FORMULA}"
+
+          echo "==> Updated formula:"
+          cat "${FORMULA}"
+
+      - name: Commit and push to homebrew-scowser
+        working-directory: homebrew-tap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/scowser.rb
+          git commit -m "scowser ${{ inputs.tag }}"
+          git push

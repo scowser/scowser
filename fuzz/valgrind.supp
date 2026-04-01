@@ -1,0 +1,44 @@
+# Valgrind suppressions for Scowser
+# Suppress known Qt/Chromium internal allocations that are not real leaks
+
+{
+   qt_platform_init
+   Memcheck:Leak
+   ...
+   fun:*QGuiApplication*
+}
+
+{
+   qt_core_init
+   Memcheck:Leak
+   ...
+   fun:*QCoreApplication*
+}
+
+{
+   qt_thread_pool
+   Memcheck:Leak
+   ...
+   fun:*QThreadPool*
+}
+
+{
+   qt_opengl
+   Memcheck:Leak
+   ...
+   fun:*QOpenGL*
+}
+
+{
+   dl_open
+   Memcheck:Leak
+   ...
+   fun:_dl_open
+}
+
+{
+   dl_init
+   Memcheck:Leak
+   ...
+   fun:_dl_init
+}
