@@ -1,0 +1,9 @@
+https://example.com
+http://test.org/path?q=search
+example.com
+hello world search query
+javascript:alert(1)
+data:text/html,<h1>hi</h1>
+file:///etc/passwd
+ftp://files.example.com
+//protocol-relative.com

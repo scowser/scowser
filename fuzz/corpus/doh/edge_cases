@@ -1,0 +1,7 @@
+{}
+{"Status":2}
+{"Status":0,"Answer":[]}
+{"Status":0,"Answer":[{"type":99,"data":"garbage"}]}
+{"Status":0,"Answer":[{"type":1,"TTL":-1,"data":"not.an.ip"}]}
+null
+[]

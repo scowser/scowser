@@ -1,0 +1,5 @@
+;;;;;;;
+default-src
+'self' 'none' 'unsafe-inline'
+script-src script-src script-src
+default-src https://x.com https://x.com https://x.com

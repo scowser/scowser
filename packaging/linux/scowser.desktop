@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Scowser
+Comment=The Secure Browser
+Exec=scowser %u
+Icon=scowser
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;Security;
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+Keywords=browser;web;secure;private;
+StartupNotify=true
+StartupWMClass=scowser

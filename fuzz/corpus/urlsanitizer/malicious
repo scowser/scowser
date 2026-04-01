@@ -1,0 +1,8 @@
+javascript:void(document.cookie)
+data:text/javascript,alert(1)
+blob:https://evil.com/uuid
+https://evil.com\@good.com
+https://good.com%00evil.com
+https://evil.com/..%2f..%2fetc/passwd
+http://[::ffff:127.0.0.1]
+https://example.com:99999
