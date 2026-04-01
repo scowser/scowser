@@ -10,15 +10,12 @@ permissions:
 
 jobs:
   build-macos:
-    name: macOS (${{ matrix.arch }})
+    name: macOS (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - arch: arm64
-            runner: macos-latest
-          - arch: x86_64
-            runner: macos-13
+        runner: [macos-latest, macos-14, macos-15, macos-26]
 
     steps:
       - uses: actions/checkout@v6
@@ -28,15 +25,16 @@ jobs:
 
       - name: Build
         run: |
+          QT_PREFIX=$(brew --prefix qt@6)
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
+            -DCMAKE_PREFIX_PATH="$QT_PREFIX"
           cmake --build build --parallel $(sysctl -n hw.ncpu)
 
       - name: Package .app bundle
         run: |
           APP="build/scowser.app"
-          MACDEPLOYQT=$(find /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
+          MACDEPLOYQT=$(find "$(brew --prefix qt@6)" /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
           if [ -n "$MACDEPLOYQT" ]; then
             "$MACDEPLOYQT" "$APP" -verbose=1
           fi
@@ -45,15 +43,16 @@ jobs:
       - name: Create DMG
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          hdiutil create -volname "Scowser" \
+          hdiutil create -volname "scowser-${VERSION}" \
             -srcfolder "build/scowser.app" \
             -ov -format UDZO \
-            "Scowser-${VERSION}-macos-${{ matrix.arch }}.dmg"
+            -fs HFS+ \
+            "scowser-${VERSION}-${{ matrix.runner }}.dmg"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: macos-${{ matrix.arch }}
+          name: ${{ matrix.runner }}
           path: "*.dmg"
 
   build-linux:
@@ -112,14 +111,14 @@ jobs:
 
           # Build AppImage
           export QMAKE=$(which qmake6 2>/dev/null || which qmake)
-          OUTPUT="Scowser-${VERSION}-linux-${{ matrix.arch }}.AppImage"
+          OUTPUT="scowser-${VERSION}-linux-${{ matrix.arch }}.AppImage"
           ./linuxdeploy --appdir AppDir \
             --plugin qt \
             --desktop-file AppDir/usr/share/applications/scowser.desktop \
             --output appimage || true
 
           # Rename if linuxdeploy created a default name
-          GENERATED=$(ls Scowser*.AppImage 2>/dev/null | head -1)
+          GENERATED=$(ls scowser*.AppImage 2>/dev/null | head -1)
           if [ -n "$GENERATED" ] && [ "$GENERATED" != "$OUTPUT" ]; then
             mv "$GENERATED" "$OUTPUT"
           fi
@@ -127,7 +126,7 @@ jobs:
           # Fallback: create tarball if AppImage creation failed
           if [ ! -f "$OUTPUT" ]; then
             echo "AppImage creation failed, creating tarball instead"
-            OUTPUT="Scowser-${VERSION}-linux-${{ matrix.arch }}.tar.gz"
+            OUTPUT="scowser-${VERSION}-linux-${{ matrix.arch }}.tar.gz"
             tar -czf "$OUTPUT" -C AppDir .
           fi
 
@@ -135,7 +134,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           DESTDIR=tar-root cmake --install build
-          tar -czf "Scowser-${VERSION}-linux-${{ matrix.arch }}.tar.gz" -C tar-root .
+          tar -czf "scowser-${VERSION}-linux-${{ matrix.arch }}.tar.gz" -C tar-root .
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
@@ -234,7 +233,7 @@ jobs:
             echo "brew install scowser"
             echo '```'
             echo ""
-            echo "**macOS:** Download the \`.dmg\` for your architecture and drag Scowser to Applications."
+            echo "**macOS:** Download the \`.dmg\` for your architecture and drag scowser to Applications."
             echo ""
             echo "**Linux:** Download the \`.AppImage\`, \`chmod +x\`, and run. Or extract the \`.tar.gz\`."
             echo ""
@@ -260,7 +259,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" \
-            --title "Scowser v${VERSION}" \
+            --title "scowser v${VERSION}" \
             --notes-file release_notes.md \
             artifacts/* \
             SHA256SUMS.txt
