@@ -1,41 +1,35 @@
-// Fuzz harness for CSP enforcement
-// Tests that arbitrary CSP headers and URLs are handled safely
+// AFL++ fuzz harness for CSP enforcement
+// Reads input from stdin, tests that arbitrary CSP headers are handled safely
 
-#include <cstdint>
-#include <cstring>
 #include <QCoreApplication>
 #include <QUrl>
+#include <QFile>
 #include "security/CSPEnforcer.h"
 
-static int s_argc = 1;
-static char s_arg0[] = "fuzz_csp";
-static char *s_argv[] = { s_arg0, nullptr };
-static QCoreApplication *s_app = nullptr;
-
-extern "C" int LLVMFuzzerInitialize(int *, char ***)
+int main(int argc, char *argv[])
 {
-    s_app = new QCoreApplication(s_argc, s_argv);
-    return 0;
-}
+    QCoreApplication app(argc, argv);
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    if (size == 0 || size > 8192) return 0;
+    QFile input;
+    input.open(stdin, QIODevice::ReadOnly);
+    QByteArray data = input.readAll();
 
-    QString input = QString::fromUtf8(reinterpret_cast<const char *>(data), size);
+    if (data.isEmpty() || data.size() > 8192) return 0;
+
+    QString text = QString::fromUtf8(data);
 
     CSPEnforcer enforcer;
     QUrl pageUrl("https://example.com");
 
     // Fuzz 1: Parse and strengthen arbitrary CSP headers
-    QString result = enforcer.enforcePolicy(pageUrl, input);
+    enforcer.enforcePolicy(pageUrl, text);
 
     // Fuzz 2: Use fuzzed input as a custom default policy
-    enforcer.setDefaultPolicy(input);
+    enforcer.setDefaultPolicy(text);
     enforcer.enforcePolicy(pageUrl, "");
 
     // Fuzz 3: Check resource allowance with fuzzed URLs and directives
-    QUrl resourceUrl = QUrl::fromUserInput(input);
+    QUrl resourceUrl = QUrl::fromUserInput(text);
     if (resourceUrl.isValid()) {
         enforcer.allowsResource("script-src", resourceUrl, pageUrl);
         enforcer.allowsResource("default-src", resourceUrl, pageUrl);
@@ -45,10 +39,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     // Fuzz 4: Use fuzzed input as directive name
     QUrl knownUrl("https://cdn.example.com/lib.js");
-    enforcer.allowsResource(input, knownUrl, pageUrl);
+    enforcer.allowsResource(text, knownUrl, pageUrl);
 
     // Fuzz 5: Log violation with fuzzed data
-    enforcer.logViolation(pageUrl, input, resourceUrl);
+    enforcer.logViolation(pageUrl, text, resourceUrl);
 
     return 0;
 }

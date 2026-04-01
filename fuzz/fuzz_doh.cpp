@@ -1,36 +1,27 @@
-// Fuzz harness for DNS-over-HTTPS response parsing
-// Tests that malformed DNS JSON responses don't crash the parser
+// AFL++ fuzz harness for DNS-over-HTTPS response parsing
+// Reads input from stdin, tests that malformed DNS JSON doesn't crash the parser
 
-#include <cstdint>
-#include <cstring>
 #include <QCoreApplication>
+#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QHostAddress>
 #include "security/DnsOverHttps.h"
 
-static int s_argc = 1;
-static char s_arg0[] = "fuzz_doh";
-static char *s_argv[] = { s_arg0, nullptr };
-static QCoreApplication *s_app = nullptr;
-
-extern "C" int LLVMFuzzerInitialize(int *, char ***)
+int main(int argc, char *argv[])
 {
-    s_app = new QCoreApplication(s_argc, s_argv);
-    return 0;
-}
+    QCoreApplication app(argc, argv);
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    if (size == 0 || size > 8192) return 0;
+    QFile input;
+    input.open(stdin, QIODevice::ReadOnly);
+    QByteArray data = input.readAll();
+
+    if (data.isEmpty() || data.size() > 8192) return 0;
 
     // Fuzz 1: Parse arbitrary data as DNS JSON response
-    // We test the JSON parsing path that parseDnsResponse would take
-    QByteArray jsonData(reinterpret_cast<const char *>(data), size);
-
     QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
+    QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error == QJsonParseError::NoError) {
         QJsonObject root = doc.object();
@@ -48,9 +39,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         }
     }
 
-    // Fuzz 2: Use fuzzed input as hostname
-    QString hostname = QString::fromUtf8(reinterpret_cast<const char *>(data),
-                                          qMin(size, size_t(256)));
+    // Fuzz 2: Use fuzzed input as hostname for cache lookup
+    QString hostname = QString::fromUtf8(data.left(256));
     DnsOverHttps resolver;
     resolver.cachedLookup(hostname);
 
