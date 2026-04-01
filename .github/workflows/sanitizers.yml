@@ -158,52 +158,22 @@ jobs:
           sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev afl++
 
       - name: Build fuzz targets with AFL++
-        env:
-          CXX: afl-clang-fast++
-          CC: afl-clang-fast
         run: |
-          # Get Qt flags
-          QT_CFLAGS=$(pkg-config --cflags Qt6Core Qt6Network 2>/dev/null || \
-                      echo "-I/usr/include/x86_64-linux-gnu/qt6 -I/usr/include/x86_64-linux-gnu/qt6/QtCore -I/usr/include/x86_64-linux-gnu/qt6/QtNetwork")
-          QT_LIBS=$(pkg-config --libs Qt6Core Qt6Network 2>/dev/null || \
-                    echo "-lQt6Core -lQt6Network")
-
-          COMMON_FLAGS="-O2 -g -std=c++20 -I src $QT_CFLAGS"
-          mkdir -p build/fuzz
-
-          # fuzz_adblocker
-          afl-clang-fast++ $COMMON_FLAGS \
-            fuzz/fuzz_adblocker.cpp src/security/AdBlocker.cpp \
-            -o build/fuzz/fuzz_adblocker \
-            $QT_LIBS
-
-          # fuzz_urlsanitizer
-          afl-clang-fast++ $COMMON_FLAGS \
-            fuzz/fuzz_urlsanitizer.cpp \
-            -o build/fuzz/fuzz_urlsanitizer \
-            $QT_LIBS
-
-          # fuzz_csp
-          afl-clang-fast++ $COMMON_FLAGS \
-            fuzz/fuzz_csp.cpp src/security/CSPEnforcer.cpp \
-            -o build/fuzz/fuzz_csp \
-            $QT_LIBS
-
-          # fuzz_doh
-          afl-clang-fast++ $COMMON_FLAGS \
-            fuzz/fuzz_doh.cpp src/security/DnsOverHttps.cpp \
-            -o build/fuzz/fuzz_doh \
-            $QT_LIBS
+          cmake -B build/fuzz -S fuzz \
+            -DCMAKE_C_COMPILER=afl-clang-fast \
+            -DCMAKE_CXX_COMPILER=afl-clang-fast++ \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/fuzz --parallel $(nproc)
 
       - name: Run AFL++ fuzzing
         run: |
           FUZZ_DURATION=120  # 2 minutes per target
 
           declare -A TARGETS=(
-            [adblocker]="build/fuzz/fuzz_adblocker"
-            [urlsanitizer]="build/fuzz/fuzz_urlsanitizer"
-            [csp]="build/fuzz/fuzz_csp"
-            [doh]="build/fuzz/fuzz_doh"
+            [adblocker]="$(find build/fuzz -name fuzz_adblocker -type f -executable | head -1)"
+            [urlsanitizer]="$(find build/fuzz -name fuzz_urlsanitizer -type f -executable | head -1)"
+            [csp]="$(find build/fuzz -name fuzz_csp -type f -executable | head -1)"
+            [doh]="$(find build/fuzz -name fuzz_doh -type f -executable | head -1)"
           )
 
           FAILED=0
