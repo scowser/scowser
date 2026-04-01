@@ -1,0 +1,5 @@
+default-src 'self'; script-src 'self'
+default-src 'none'
+script-src 'unsafe-inline' 'unsafe-eval' https:
+default-src *; object-src 'none'; base-uri 'self'
+style-src 'self' 'unsafe-inline'; img-src data: https:
