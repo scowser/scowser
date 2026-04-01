@@ -134,7 +134,7 @@ jobs:
         run: |
           cd build
           for test_bin in tests/test_*; do
-            if [ -x "$test_bin" ]; then
+            if [ -f "$test_bin" ] && [ -x "$test_bin" ]; then
               echo "==> Valgrind: $test_bin"
               valgrind \
                 --leak-check=full \
