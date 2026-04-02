@@ -16,7 +16,7 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.1");
+    setApplicationVersion("0.0.2");
     setOrganizationName("scowser");
 
     disableTelemetry();
