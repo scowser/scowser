@@ -16,7 +16,21 @@ A security-focused web browser built in C++ with Qt6 WebEngine.
 - **CSP Enforcement** — Content Security Policy headers injected and enforced
 - **Ephemeral by Default** — All browsing data wiped on exit; no persistent cookies, cache, or history
 
-## Building
+## Install
+
+**macOS (Homebrew Cask):**
+```bash
+brew tap scowser/scowser
+brew install --cask scowser
+```
+
+**Linux (Homebrew Formula):**
+```bash
+brew tap scowser/scowser
+brew install scowser
+```
+
+## Building from Source
 
 ### Prerequisites
 
