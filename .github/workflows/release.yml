@@ -61,28 +61,70 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           APP="build/scowser.app"
+          FRAMEWORKS="$APP/Contents/Frameworks"
           QT_PREFIX=$(brew --prefix qt@6)
           MACDEPLOYQT=$(find "$QT_PREFIX" /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
           if [ -n "$MACDEPLOYQT" ]; then
-            # Add extra library paths so macdeployqt can resolve transitive deps
-            "$MACDEPLOYQT" "$APP" -verbose=1 \
-              -libpath="$QT_PREFIX/lib" \
-              -libpath="$(brew --prefix brotli)/lib" \
-              -libpath="$(brew --prefix webp)/lib"
+            "$MACDEPLOYQT" "$APP" -verbose=1 || true
           fi
+
+          # Remove plugins we don't need (avoids unresolvable QtVirtualKeyboard deps)
+          rm -rf "$APP/Contents/PlugIns/virtualkeyboard"
+
+          # Copy missing transitive dylibs that macdeployqt fails to resolve
+          copy_lib() {
+            local lib_name="$1"
+            local src
+            src=$(find /opt/homebrew/lib /opt/homebrew/opt/*/lib -name "$lib_name" -type f 2>/dev/null | head -1)
+            if [ -n "$src" ] && [ ! -f "$FRAMEWORKS/$lib_name" ]; then
+              echo "Copying missing lib: $src -> $FRAMEWORKS/$lib_name"
+              cp "$src" "$FRAMEWORKS/$lib_name"
+              chmod 644 "$FRAMEWORKS/$lib_name"
+              # Rewrite the install name to @rpath
+              install_name_tool -id "@rpath/$lib_name" "$FRAMEWORKS/$lib_name" 2>/dev/null || true
+            fi
+          }
+
+          mkdir -p "$FRAMEWORKS"
+          copy_lib "libbrotlicommon.1.dylib"
+          copy_lib "libwebp.7.dylib"
+          copy_lib "libsharpyuv.0.dylib"
+
+          # Fix any remaining @rpath references inside bundled dylibs
+          for dylib in "$FRAMEWORKS"/*.dylib; do
+            otool -L "$dylib" 2>/dev/null | grep "@rpath" | awk '{print $1}' | while read -r dep; do
+              dep_name=$(basename "$dep")
+              if [ -f "$FRAMEWORKS/$dep_name" ]; then
+                install_name_tool -change "$dep" "@loader_path/$dep_name" "$dylib" 2>/dev/null || true
+              fi
+            done
+          done
+
+          # Also fix @rpath refs inside frameworks
+          find "$FRAMEWORKS" -name "*.framework" -type d | while read -r fw; do
+            fw_name=$(basename "$fw" .framework)
+            fw_bin="$fw/Versions/A/$fw_name"
+            [ -f "$fw_bin" ] || continue
+            otool -L "$fw_bin" 2>/dev/null | grep "@rpath" | awk '{print $1}' | while read -r dep; do
+              dep_name=$(basename "$dep")
+              if [ -f "$FRAMEWORKS/$dep_name" ]; then
+                install_name_tool -change "$dep" "@loader_path/../../$dep_name" "$fw_bin" 2>/dev/null || true
+              fi
+            done
+          done
 
           IDENTITY="Developer ID Application: ($APPLE_TEAM_ID)"
 
           # Sign all Mach-O binaries inside frameworks, then standalone dylibs
-          find "$APP/Contents/Frameworks" -type f -perm +111 -exec \
-            file {} \; 2>/dev/null | grep "Mach-O" | cut -d: -f1 | while read -r binary; do
-            codesign --force --options runtime --sign "$IDENTITY" --timestamp "$binary"
+          find "$FRAMEWORKS" -type f -perm +111 | while read -r binary; do
+            file "$binary" | grep -q "Mach-O" && \
+              codesign --force --options runtime --sign "$IDENTITY" --timestamp "$binary"
           done
 
           find "$APP" -name "*.dylib" -type f -exec \
             codesign --force --options runtime --sign "$IDENTITY" --timestamp {} \;
 
-          # Sign the main executable
+          # Sign the main app bundle
           codesign --force --options runtime --sign "$IDENTITY" --timestamp \
             --deep "$APP"
 
