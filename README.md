@@ -94,12 +94,12 @@ scowser embeds Chromium via Qt6 WebEngine and layers security controls on top:
 
 | Threat                  | Mitigation                                    |
 |-------------------------|-----------------------------------------------|
-| Ad/tracker surveillance | Request-level blocking via filter lists        |
-| DNS snooping            | DNS-over-HTTPS with trusted resolvers          |
-| Data exfiltration       | Zero telemetry, ephemeral sessions             |
-| MITM attacks            | Certificate pinning, strict TLS, CT checks     |
-| XSS / injection         | CSP enforcement on all pages                   |
-| Tab compromise          | Process isolation + OS-level sandboxing         |
+| Ad/tracker surveillance | Request-level blocking via filter lists       |
+| DNS snooping            | DNS-over-HTTPS with trusted resolvers         |
+| Data exfiltration       | Zero telemetry, ephemeral sessions            |
+| MITM attacks            | Certificate pinning, strict TLS, CT checks    |
+| XSS / injection         | CSP enforcement on all pages                  |
+| Tab compromise          | Process isolation + OS-level sandboxing       |
 
 ## License
 
