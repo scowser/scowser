@@ -61,19 +61,30 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           APP="build/scowser.app"
-          MACDEPLOYQT=$(find "$(brew --prefix qt@6)" /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
+          QT_PREFIX=$(brew --prefix qt@6)
+          MACDEPLOYQT=$(find "$QT_PREFIX" /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
           if [ -n "$MACDEPLOYQT" ]; then
-            "$MACDEPLOYQT" "$APP" -verbose=1
+            # Add extra library paths so macdeployqt can resolve transitive deps
+            "$MACDEPLOYQT" "$APP" -verbose=1 \
+              -libpath="$QT_PREFIX/lib" \
+              -libpath="$(brew --prefix brotli)/lib" \
+              -libpath="$(brew --prefix webp)/lib"
           fi
 
           IDENTITY="Developer ID Application: ($APPLE_TEAM_ID)"
 
-          # Sign all frameworks and dylibs first, then the app
-          find "$APP" -type f \( -name "*.dylib" -o -name "*.framework" \) -exec \
+          # Sign all Mach-O binaries inside frameworks, then standalone dylibs
+          find "$APP/Contents/Frameworks" -type f -perm +111 -exec \
+            file {} \; 2>/dev/null | grep "Mach-O" | cut -d: -f1 | while read -r binary; do
+            codesign --force --options runtime --sign "$IDENTITY" --timestamp "$binary"
+          done
+
+          find "$APP" -name "*.dylib" -type f -exec \
             codesign --force --options runtime --sign "$IDENTITY" --timestamp {} \;
 
+          # Sign the main executable
           codesign --force --options runtime --sign "$IDENTITY" --timestamp \
-            --entitlements /dev/null "$APP"
+            --deep "$APP"
 
           # Verify signature
           codesign --verify --deep --strict "$APP"
