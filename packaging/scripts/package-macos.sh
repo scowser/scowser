@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Package Scowser as a self-contained macOS .app bundle
+# Package scowser as a self-contained macOS .app bundle
 set -euo pipefail
 
 BUILD_DIR="${1:-build}"
@@ -24,8 +24,8 @@ echo "==> Signing bundle with ad-hoc signature..."
 codesign --force --deep --sign - "$APP_BUNDLE"
 
 echo "==> Creating DMG..."
-DMG_NAME="Scowser-$(grep 'project(scowser' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-hdiutil create -volname "Scowser" \
+DMG_NAME="scowser-$(grep 'project(scowser' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+hdiutil create -volname "scowser" \
     -srcfolder "$APP_BUNDLE" \
     -ov -format UDZO \
     "$BUILD_DIR/${DMG_NAME}.dmg"

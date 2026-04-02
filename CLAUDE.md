@@ -1,7 +1,7 @@
-# Scowser — Development Guide
+# scowser — Development Guide
 
 ## Project Overview
-Scowser is a security-focused web browser built in C++ using Qt6 WebEngine (Chromium-based).
+scowser is a security-focused web browser built in C++ using Qt6 WebEngine (Chromium-based).
 Target platforms: macOS and Linux.
 
 ## Build System

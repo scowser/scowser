@@ -1,4 +1,4 @@
-# Scowser
+# scowser
 
 A security-focused web browser built in C++ with Qt6 WebEngine.
 
@@ -53,11 +53,11 @@ ctest --test-dir build --output-on-failure
 
 ## Architecture
 
-Scowser embeds Chromium via Qt6 WebEngine and layers security controls on top:
+scowser embeds Chromium via Qt6 WebEngine and layers security controls on top:
 
 ```
 ┌─────────────────────────────────┐
-│           Scowser UI            │
+│           scowser UI            │
 │  (MainWindow, Tabs, AddressBar) │
 ├─────────────────────────────────┤
 │        Security Layer           │

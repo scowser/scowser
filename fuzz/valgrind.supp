@@ -1,4 +1,4 @@
-# Valgrind suppressions for Scowser
+# Valgrind suppressions for scowser
 # Suppress known Qt/Chromium internal allocations that are not real leaks
 
 {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(scowser VERSION 0.1.0 LANGUAGES CXX)
+project(scowser VERSION 0.0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,11 +49,11 @@ set(HEADERS
 
 # macOS .app bundle
 if(APPLE)
-    set(MACOSX_BUNDLE_BUNDLE_NAME "Scowser")
+    set(MACOSX_BUNDLE_BUNDLE_NAME "scowser")
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_GUI_IDENTIFIER "com.scowser.browser")
-    set(MACOSX_BUNDLE_INFO_STRING "Scowser - The Secure Browser")
+    set(MACOSX_BUNDLE_INFO_STRING "scowser - The Secure Browser")
     set(MACOSX_BUNDLE_ICON_FILE "scowser.icns")
 
     add_executable(scowser MACOSX_BUNDLE ${SOURCES} ${HEADERS})
@@ -128,12 +128,12 @@ endif()
 # CPack for portable archives
 set(CPACK_PACKAGE_NAME "scowser")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Scowser - The Secure Browser")
-set(CPACK_PACKAGE_VENDOR "Scowser")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "scowser - The Secure Browser")
+set(CPACK_PACKAGE_VENDOR "scowser")
 
 if(APPLE)
     set(CPACK_GENERATOR "DragNDrop")
-    set(CPACK_DMG_VOLUME_NAME "Scowser")
+    set(CPACK_DMG_VOLUME_NAME "scowser")
 else()
     set(CPACK_GENERATOR "TGZ")
 endif()
