@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     onNewTab();
 
     resize(1280, 800);
-    setWindowTitle("Scowser");
+    setWindowTitle("scowser");
 }
 
 MainWindow::~MainWindow() = default;
@@ -112,7 +112,7 @@ void MainWindow::onCurrentTabChanged(int index)
 {
     if (auto *view = m_tabWidget->webView(index)) {
         m_addressBar->setUrl(view->url());
-        setWindowTitle(view->title().isEmpty() ? "Scowser" : view->title() + " — Scowser");
+        setWindowTitle(view->title().isEmpty() ? "scowser" : view->title() + " — scowser");
     }
 }
 
@@ -127,7 +127,7 @@ void MainWindow::onTabTitleChanged(const QString &title)
     }
 
     if (m_tabWidget->currentWebView() == view) {
-        setWindowTitle(title.isEmpty() ? "Scowser" : title + " — Scowser");
+        setWindowTitle(title.isEmpty() ? "scowser" : title + " — scowser");
     }
 }
 

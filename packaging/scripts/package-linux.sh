@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Package Scowser as a Linux AppImage
+# Package scowser as a Linux AppImage
 set -euo pipefail
 
 BUILD_DIR="${1:-build}"
 BINARY="$BUILD_DIR/scowser"
-APP_DIR="$BUILD_DIR/Scowser.AppDir"
+APP_DIR="$BUILD_DIR/scowser.AppDir"
 VERSION=$(grep 'project(scowser' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
 if [ ! -f "$BINARY" ]; then
@@ -69,8 +69,8 @@ fi
 # Create AppImage using appimagetool
 if command -v appimagetool &>/dev/null; then
     echo "==> Creating AppImage..."
-    ARCH=$(uname -m) appimagetool "$APP_DIR" "$BUILD_DIR/Scowser-${VERSION}-$(uname -m).AppImage"
-    echo "==> Done: $BUILD_DIR/Scowser-${VERSION}-$(uname -m).AppImage"
+    ARCH=$(uname -m) appimagetool "$APP_DIR" "$BUILD_DIR/scowser-${VERSION}-$(uname -m).AppImage"
+    echo "==> Done: $BUILD_DIR/scowser-${VERSION}-$(uname -m).AppImage"
 else
     echo "Warning: appimagetool not found. AppDir created at: $APP_DIR"
     echo "  Install: https://github.com/AppImage/appimagetool/releases"

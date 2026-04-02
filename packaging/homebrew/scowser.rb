@@ -1,4 +1,4 @@
-# Homebrew formula for Scowser
+# Homebrew formula for scowser
 # To use: brew tap <your-username>/scowser && brew install scowser
 #
 # Publishing steps:
@@ -7,10 +7,10 @@
 #   3. Update the `url` and `sha256` fields to point to a release tarball
 #   4. Users install with: brew tap <your-username>/scowser && brew install scowser
 
-class Scowser < Formula
+class scowser < Formula
   desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
   homepage "https://github.com/YOUR_USERNAME/scowser"
-  url "https://github.com/YOUR_USERNAME/scowser/archive/refs/tags/v0.1.0.tar.gz"
+  url "https://github.com/YOUR_USERNAME/scowser/archive/refs/tags/v0.0.2.tar.gz"
   sha256 "UPDATE_WITH_ACTUAL_SHA256"
   license "MIT"
 
@@ -35,7 +35,7 @@ class Scowser < Formula
 
   def caveats
     <<~EOS
-      Scowser is a security-focused browser. By default:
+      scowser is a security-focused browser. By default:
         - All sessions are ephemeral (no data persists after exit)
         - DNS queries use DNS-over-HTTPS (Cloudflare)
         - Ads and trackers are blocked at the request level
@@ -45,6 +45,6 @@ class Scowser < Formula
 
   test do
     # Basic smoke test — verify binary runs and exits cleanly
-    assert_match "Scowser", shell_output("#{bin}/scowser --version 2>&1", 0)
+    assert_match "scowser", shell_output("#{bin}/scowser --version 2>&1", 0)
   end
 end

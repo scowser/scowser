@@ -1,7 +1,7 @@
-# Scowser — Development Guide
+# scowser — Development Guide
 
 ## Project Overview
-Scowser is a security-focused web browser built in C++ using Qt6 WebEngine (Chromium-based).
+scowser is a security-focused web browser built in C++ using Qt6 WebEngine (Chromium-based).
 Target platforms: macOS and Linux.
 
 ## Build System
@@ -100,3 +100,8 @@ cmake -B build -DBUILD_TESTING=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
+
+## CI Workflows
+- `.github/workflows/sanitizers.yml` — Runs ASan, UBSan, TSan, Valgrind, and AFL++ fuzzing on push/PR to main and nightly
+- Valgrind suppressions live in `fuzz/valgrind.supp` — add Qt/system false positives there
+- Fuzz corpora are in `fuzz/corpus/`, fuzz targets in `fuzz/`

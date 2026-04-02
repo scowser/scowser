@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Scowser
+Name=scowser
 Comment=The Secure Browser
 Exec=scowser %u
 Icon=scowser
