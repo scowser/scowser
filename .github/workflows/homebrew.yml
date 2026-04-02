@@ -1,40 +1,51 @@
-name: Update Homebrew Formula
+name: Update Homebrew Tap
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to update formula with (e.g. v0.0.2)"
+        description: "Release tag to update tap with (e.g. v0.0.3)"
         required: true
         type: string
+        default: v0.0.3
 
 jobs:
-  update-formula:
+  update-tap:
     runs-on: ubuntu-latest
 
     steps:
       - name: Validate tag format
         run: |
           if [[ ! "${{ inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Tag must match format vX.Y.Z (e.g. v0.0.2)"
+            echo "Error: Tag must match format vX.Y.Z (e.g. v0.0.3)"
             exit 1
           fi
 
-      - name: Download release tarball and compute SHA256
+      - name: Download release assets and compute SHA256
         id: sha
         run: |
           TAG="${{ inputs.tag }}"
+          VERSION="${TAG#v}"
           REPO="${{ github.repository }}"
-          URL="https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz"
 
-          echo "Downloading ${URL}..."
-          curl -fSL -o release.tar.gz "${URL}"
+          # Source tarball (for Linux formula)
+          TARBALL_URL="https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz"
+          echo "Downloading ${TARBALL_URL}..."
+          curl -fSL -o release.tar.gz "${TARBALL_URL}"
+          TARBALL_SHA256=$(sha256sum release.tar.gz | awk '{print $1}')
+          echo "tarball_sha256=${TARBALL_SHA256}" >> "$GITHUB_OUTPUT"
+          echo "tarball_url=${TARBALL_URL}" >> "$GITHUB_OUTPUT"
+          echo "Tarball SHA256: ${TARBALL_SHA256}"
 
-          SHA256=$(sha256sum release.tar.gz | awk '{print $1}')
-          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
-          echo "url=${URL}" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
-          echo "SHA256: ${SHA256}"
+          # DMG (for macOS cask)
+          DMG_URL="https://github.com/${REPO}/releases/download/${TAG}/scowser-${VERSION}-macos.dmg"
+          echo "Downloading ${DMG_URL}..."
+          curl -fSL -o scowser.dmg "${DMG_URL}"
+          DMG_SHA256=$(sha256sum scowser.dmg | awk '{print $1}')
+          echo "dmg_sha256=${DMG_SHA256}" >> "$GITHUB_OUTPUT"
+          echo "DMG SHA256: ${DMG_SHA256}"
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout homebrew-scowser tap
         uses: actions/checkout@v6
@@ -43,26 +54,54 @@ jobs:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-tap
 
-      - name: Update formula
+      - name: Update cask (macOS)
+        run: |
+          CASK="homebrew-tap/Casks/scowser.rb"
+          mkdir -p homebrew-tap/Casks
+          REPO="${{ github.repository }}"
+
+          cat > "${CASK}" << RUBY
+          cask "scowser" do
+            version "${VERSION_PLACEHOLDER}"
+            sha256 "${DMG_SHA_PLACEHOLDER}"
+
+            url "https://github.com/${REPO_PLACEHOLDER}/releases/download/v#{version}/scowser-#{version}-macos.dmg"
+            name "scowser"
+            desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
+            homepage "https://github.com/${REPO_PLACEHOLDER}"
+            license "Apache-2.0"
+
+            app "scowser.app"
+          end
+          RUBY
+
+          sed -i 's/^          //' "${CASK}"
+          sed -i "s|\${VERSION_PLACEHOLDER}|${{ steps.sha.outputs.version }}|g" "${CASK}"
+          sed -i "s|\${DMG_SHA_PLACEHOLDER}|${{ steps.sha.outputs.dmg_sha256 }}|g" "${CASK}"
+          sed -i "s|\${REPO_PLACEHOLDER}|${REPO}|g" "${CASK}"
+
+          echo "==> Updated cask:"
+          cat "${CASK}"
+
+      - name: Update formula (Linux)
         run: |
           FORMULA="homebrew-tap/Formula/scowser.rb"
           mkdir -p homebrew-tap/Formula
+          REPO="${{ github.repository }}"
 
           cat > "${FORMULA}" << 'RUBY'
-          class scowser < Formula
+          class Scowser < Formula
             desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
-            homepage "https://github.com/OWNER/scowser"
+            homepage "https://github.com/REPO_PLACEHOLDER"
             url "URL_PLACEHOLDER"
             sha256 "SHA_PLACEHOLDER"
-            license "MIT"
+            license "Apache-2.0"
 
+            depends_on :linux
             depends_on "cmake" => :build
             depends_on "qt@6"
-
-            on_linux do
-              depends_on "libseccomp"
-              depends_on "pkg-config" => :build
-            end
+            depends_on "libseccomp"
+            depends_on "pkg-config" => :build
 
             def install
               args = %W[
@@ -91,15 +130,10 @@ jobs:
           end
           RUBY
 
-          # Strip leading whitespace from heredoc
           sed -i 's/^          //' "${FORMULA}"
-
-          # Replace placeholders with actual values
-          REPO="${{ github.repository }}"
-          OWNER="${{ github.repository_owner }}"
-          sed -i "s|OWNER/scowser|${REPO}|g" "${FORMULA}"
-          sed -i "s|URL_PLACEHOLDER|${{ steps.sha.outputs.url }}|g" "${FORMULA}"
-          sed -i "s|SHA_PLACEHOLDER|${{ steps.sha.outputs.sha256 }}|g" "${FORMULA}"
+          sed -i "s|REPO_PLACEHOLDER|${REPO}|g" "${FORMULA}"
+          sed -i "s|URL_PLACEHOLDER|${{ steps.sha.outputs.tarball_url }}|g" "${FORMULA}"
+          sed -i "s|SHA_PLACEHOLDER|${{ steps.sha.outputs.tarball_sha256 }}|g" "${FORMULA}"
 
           echo "==> Updated formula:"
           cat "${FORMULA}"
@@ -109,6 +143,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/scowser.rb
+          git add Casks/scowser.rb Formula/scowser.rb
           git commit -m "scowser ${{ inputs.tag }}"
           git push
