@@ -61,7 +61,7 @@ scowser embeds Chromium via Qt6 WebEngine and layers security controls on top:
 │  (MainWindow, Tabs, AddressBar) │
 ├─────────────────────────────────┤
 │        Security Layer           │
-│  AdBlocker · DoH · CertPinner  │
+│  AdBlocker · DoH · CertPinner   │
 │  CSP Enforcer · SessionManager  │
 ├─────────────────────────────────┤
 │     Request Interceptor         │
