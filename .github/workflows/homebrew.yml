@@ -69,17 +69,16 @@ jobs:
         run: |
           CASK="homebrew-tap/Casks/scowser.rb"
           mkdir -p homebrew-tap/Casks
-          REPO="${{ github.repository }}"
 
           cat > "${CASK}" << 'RUBY'
           cask "scowser" do
             version "VERSION_PLACEHOLDER"
             sha256 "DMG_SHA_PLACEHOLDER"
 
-            url "https://github.com/REPO_PLACEHOLDER/releases/download/v#{version}/DMG_NAME_PLACEHOLDER"
+            url "https://github.com/scowser/scowser/releases/download/v#{version}/DMG_NAME_PLACEHOLDER"
             name "scowser"
             desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
-            homepage "https://github.com/REPO_PLACEHOLDER"
+            homepage "https://github.com/scowser/scowser"
 
             app "scowser.app"
           end
@@ -89,7 +88,6 @@ jobs:
           sed -i "s|VERSION_PLACEHOLDER|${{ steps.sha.outputs.version }}|g" "${CASK}"
           sed -i "s|DMG_SHA_PLACEHOLDER|${{ steps.sha.outputs.dmg_sha256 }}|g" "${CASK}"
           sed -i "s|DMG_NAME_PLACEHOLDER|${{ steps.sha.outputs.dmg_name }}|g" "${CASK}"
-          sed -i "s|REPO_PLACEHOLDER|${REPO}|g" "${CASK}"
 
           echo "==> Updated cask:"
           cat "${CASK}"
