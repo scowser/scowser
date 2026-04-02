@@ -124,7 +124,7 @@ QString CSPEnforcer::enforcementScript() const
         (function() {
             'use strict';
             document.addEventListener('securitypolicyviolation', function(e) {
-                console.warn('[Scowser CSP]', e.violatedDirective,
+                console.warn('[scowser CSP]', e.violatedDirective,
                              'blocked:', e.blockedURI,
                              'on:', e.documentURI);
             });

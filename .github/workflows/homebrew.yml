@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to update formula with (e.g. v0.1.0)"
+        description: "Release tag to update formula with (e.g. v0.0.2)"
         required: true
         type: string
 
@@ -16,7 +16,7 @@ jobs:
       - name: Validate tag format
         run: |
           if [[ ! "${{ inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Tag must match format vX.Y.Z (e.g. v0.1.0)"
+            echo "Error: Tag must match format vX.Y.Z (e.g. v0.0.2)"
             exit 1
           fi
 
@@ -49,7 +49,7 @@ jobs:
           mkdir -p homebrew-tap/Formula
 
           cat > "${FORMULA}" << 'RUBY'
-          class Scowser < Formula
+          class scowser < Formula
             desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
             homepage "https://github.com/OWNER/scowser"
             url "URL_PLACEHOLDER"
@@ -77,7 +77,7 @@ jobs:
 
             def caveats
               <<~EOS
-                Scowser is a security-focused browser. By default:
+                scowser is a security-focused browser. By default:
                   - All sessions are ephemeral (no data persists after exit)
                   - DNS queries use DNS-over-HTTPS (Cloudflare)
                   - Ads and trackers are blocked at the request level
@@ -86,7 +86,7 @@ jobs:
             end
 
             test do
-              assert_match "Scowser", shell_output("#{bin}/scowser --version 2>&1", 0)
+              assert_match "scowser", shell_output("#{bin}/scowser --version 2>&1", 0)
             end
           end
           RUBY
