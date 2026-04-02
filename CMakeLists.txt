@@ -47,6 +47,10 @@ set(HEADERS
     src/sandbox/ProcessSandbox.h
 )
 
+set(RESOURCES
+    resources/resources.qrc
+)
+
 # macOS .app bundle
 if(APPLE)
     set(MACOSX_BUNDLE_BUNDLE_NAME "scowser")
@@ -56,7 +60,7 @@ if(APPLE)
     set(MACOSX_BUNDLE_INFO_STRING "scowser - The Secure Browser")
     set(MACOSX_BUNDLE_ICON_FILE "scowser.icns")
 
-    add_executable(scowser MACOSX_BUNDLE ${SOURCES} ${HEADERS})
+    add_executable(scowser MACOSX_BUNDLE ${SOURCES} ${HEADERS} ${RESOURCES})
 
     # Copy icon into bundle if it exists
     if(EXISTS "${CMAKE_SOURCE_DIR}/resources/icons/scowser.icns")
@@ -67,7 +71,7 @@ if(APPLE)
         target_sources(scowser PRIVATE "${CMAKE_SOURCE_DIR}/resources/icons/scowser.icns")
     endif()
 else()
-    add_executable(scowser ${SOURCES} ${HEADERS})
+    add_executable(scowser ${SOURCES} ${HEADERS} ${RESOURCES})
 endif()
 
 target_include_directories(scowser PRIVATE ${CMAKE_SOURCE_DIR}/src)

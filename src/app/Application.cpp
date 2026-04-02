@@ -8,6 +8,7 @@
 #include "network/RequestInterceptor.h"
 #include "network/NetworkManager.h"
 
+#include <QIcon>
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QtWebEngineCore/QWebEngineUrlScheme>
@@ -18,6 +19,7 @@ Application::Application(int &argc, char **argv)
     setApplicationName("scowser");
     setApplicationVersion("0.0.2");
     setOrganizationName("scowser");
+    setWindowIcon(QIcon(":/icons/scowser.png"));
 
     disableTelemetry();
     initSecurity();

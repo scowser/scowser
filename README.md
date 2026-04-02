@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="scowser.png" alt="scowser" width="128">
+</p>
+
 # scowser
 
 A security-focused web browser built in C++ with Qt6 WebEngine.
