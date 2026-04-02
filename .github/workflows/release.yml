@@ -23,6 +23,31 @@ jobs:
       - name: Install Qt6
         run: brew install qt@6
 
+      - name: Import signing certificate
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 16)"
+
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security import "$CERT_PATH" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
       - name: Build
         run: |
           QT_PREFIX=$(brew --prefix qt@6)
@@ -31,14 +56,28 @@ jobs:
             -DCMAKE_PREFIX_PATH="$QT_PREFIX"
           cmake --build build --parallel $(sysctl -n hw.ncpu)
 
-      - name: Package .app bundle
+      - name: Package and sign .app bundle
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           APP="build/scowser.app"
           MACDEPLOYQT=$(find "$(brew --prefix qt@6)" /opt/homebrew /usr/local -name macdeployqt -type f 2>/dev/null | head -1)
           if [ -n "$MACDEPLOYQT" ]; then
             "$MACDEPLOYQT" "$APP" -verbose=1
           fi
-          codesign --force --deep --sign - "$APP"
+
+          IDENTITY="Developer ID Application: ($APPLE_TEAM_ID)"
+
+          # Sign all frameworks and dylibs first, then the app
+          find "$APP" -type f \( -name "*.dylib" -o -name "*.framework" \) -exec \
+            codesign --force --options runtime --sign "$IDENTITY" --timestamp {} \;
+
+          codesign --force --options runtime --sign "$IDENTITY" --timestamp \
+            --entitlements /dev/null "$APP"
+
+          # Verify signature
+          codesign --verify --deep --strict "$APP"
+          spctl --assess --type execute --verbose "$APP"
 
       - name: Create DMG
         run: |
@@ -48,6 +87,38 @@ jobs:
             -ov -format UDZO \
             -fs HFS+ \
             "scowser-${VERSION}-${{ matrix.runner }}.dmg"
+
+      - name: Sign DMG
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DMG="scowser-${VERSION}-${{ matrix.runner }}.dmg"
+          codesign --force --sign "Developer ID Application: ($APPLE_TEAM_ID)" \
+            --timestamp "$DMG"
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DMG="scowser-${VERSION}-${{ matrix.runner }}.dmg"
+
+          xcrun notarytool submit "$DMG" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          xcrun stapler staple "$DMG"
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/certificate.p12"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
