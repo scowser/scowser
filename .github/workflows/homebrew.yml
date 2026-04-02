@@ -23,6 +23,8 @@ jobs:
 
       - name: Download release assets and compute SHA256
         id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ inputs.tag }}"
           VERSION="${TAG#v}"
@@ -37,13 +39,22 @@ jobs:
           echo "tarball_url=${TARBALL_URL}" >> "$GITHUB_OUTPUT"
           echo "Tarball SHA256: ${TARBALL_SHA256}"
 
-          # DMG (for macOS cask)
-          DMG_URL="https://github.com/${REPO}/releases/download/${TAG}/scowser-${VERSION}-macos.dmg"
+          # DMG (for macOS cask) — find the latest macOS version DMG
+          DMG_NAME=$(gh release view "${TAG}" --repo "${REPO}" --json assets --jq \
+            '[.assets[].name | select(test("scowser-.*-macos-.*\\.dmg"))] | sort | last')
+
+          if [ -z "${DMG_NAME}" ]; then
+            echo "Error: No macOS DMG found in release ${TAG}"
+            exit 1
+          fi
+
+          DMG_URL="https://github.com/${REPO}/releases/download/${TAG}/${DMG_NAME}"
           echo "Downloading ${DMG_URL}..."
           curl -fSL -o scowser.dmg "${DMG_URL}"
           DMG_SHA256=$(sha256sum scowser.dmg | awk '{print $1}')
           echo "dmg_sha256=${DMG_SHA256}" >> "$GITHUB_OUTPUT"
-          echo "DMG SHA256: ${DMG_SHA256}"
+          echo "dmg_name=${DMG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "DMG: ${DMG_NAME} SHA256: ${DMG_SHA256}"
 
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
@@ -65,7 +76,7 @@ jobs:
             version "${VERSION_PLACEHOLDER}"
             sha256 "${DMG_SHA_PLACEHOLDER}"
 
-            url "https://github.com/${REPO_PLACEHOLDER}/releases/download/v#{version}/scowser-#{version}-macos.dmg"
+            url "https://github.com/${REPO_PLACEHOLDER}/releases/download/v#{version}/${DMG_NAME_PLACEHOLDER}"
             name "scowser"
             desc "Security-focused web browser with built-in ad blocking, DoH, and ephemeral sessions"
             homepage "https://github.com/${REPO_PLACEHOLDER}"
@@ -78,6 +89,7 @@ jobs:
           sed -i 's/^          //' "${CASK}"
           sed -i "s|\${VERSION_PLACEHOLDER}|${{ steps.sha.outputs.version }}|g" "${CASK}"
           sed -i "s|\${DMG_SHA_PLACEHOLDER}|${{ steps.sha.outputs.dmg_sha256 }}|g" "${CASK}"
+          sed -i "s|\${DMG_NAME_PLACEHOLDER}|${{ steps.sha.outputs.dmg_name }}|g" "${CASK}"
           sed -i "s|\${REPO_PLACEHOLDER}|${REPO}|g" "${CASK}"
 
           echo "==> Updated cask:"
