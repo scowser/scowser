@@ -17,7 +17,7 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.8");
+    setApplicationVersion("0.0.9");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
 
