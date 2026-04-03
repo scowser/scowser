@@ -120,7 +120,7 @@ jobs:
             done
           done
 
-          IDENTITY="Developer ID Application: ($APPLE_TEAM_ID)"
+          IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/signing.keychain-db" | head -1 | sed 's/.*"\(.*\)"/\1/')
 
           # Sign all Mach-O binaries inside frameworks, then standalone dylibs
           find "$FRAMEWORKS" -type f -perm +111 | while read -r binary; do
@@ -149,12 +149,11 @@ jobs:
             "scowser-${VERSION}-${{ matrix.runner }}.dmg"
 
       - name: Sign DMG
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           DMG="scowser-${VERSION}-${{ matrix.runner }}.dmg"
-          codesign --force --sign "Developer ID Application: ($APPLE_TEAM_ID)" \
+          IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/signing.keychain-db" | head -1 | sed 's/.*"\(.*\)"/\1/')
+          codesign --force --sign "$IDENTITY" \
             --timestamp "$DMG"
 
       - name: Notarize DMG
