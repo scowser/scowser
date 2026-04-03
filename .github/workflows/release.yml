@@ -122,19 +122,31 @@ jobs:
 
           IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/signing.keychain-db" | head -1 | sed 's/.*"\(.*\)"/\1/')
 
-          # Sign all Mach-O binaries inside frameworks, then standalone dylibs
+          # Sign from the inside out (do NOT use --deep, it re-signs inner
+          # code without proper entitlements).
+
+          # 1. Sign standalone dylibs and framework binaries
+          find "$APP" -name "*.dylib" -type f -exec \
+            codesign --force --options runtime --sign "$IDENTITY" --timestamp {} \;
+
           find "$FRAMEWORKS" -type f -perm +111 | while read -r binary; do
             file "$binary" | grep -q "Mach-O" && \
               codesign --force --options runtime --sign "$IDENTITY" --timestamp "$binary"
           done
 
-          find "$APP" -name "*.dylib" -type f -exec \
-            codesign --force --options runtime --sign "$IDENTITY" --timestamp {} \;
+          # 2. Sign QtWebEngineProcess helper with its own entitlements
+          #    (it runs V8 in a separate process and needs JIT + unsigned memory)
+          HELPER="$FRAMEWORKS/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app"
+          if [ -d "$HELPER" ]; then
+            codesign --force --options runtime --sign "$IDENTITY" --timestamp \
+              --entitlements packaging/macos/QtWebEngineProcess.entitlements \
+              "$HELPER"
+          fi
 
-          # Sign the main app bundle (entitlements grant JIT for WebEngine/V8)
+          # 3. Sign the main app bundle with its entitlements
           codesign --force --options runtime --sign "$IDENTITY" --timestamp \
             --entitlements packaging/macos/scowser.entitlements \
-            --deep "$APP"
+            "$APP"
 
           # Verify signature (spctl will reject until notarized, so only check codesign here)
           codesign --verify --deep --strict "$APP"
