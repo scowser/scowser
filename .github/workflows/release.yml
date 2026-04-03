@@ -131,7 +131,7 @@ jobs:
             fw_bin="$fw/Versions/A/$fw_name"
             [ -f "$fw_bin" ] || continue
             otool -L "$fw_bin" 2>/dev/null | grep "@executable_path/../Frameworks/" | awk '{print $1}' | while read -r dep; do
-              new_dep=$(echo "$dep" | sed 's|@executable_path/../Frameworks/|@loader_path/../../|')
+              new_dep=$(echo "$dep" | sed 's|@executable_path/../Frameworks/|@loader_path/../../../|')
               echo "Rewriting in $fw_name: $dep -> $new_dep"
               install_name_tool -change "$dep" "$new_dep" "$fw_bin" 2>/dev/null || true
             done
