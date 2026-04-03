@@ -120,6 +120,14 @@ jobs:
             done
           done
 
+          # Fix QtWebEngineProcess rpath — the helper looks for Qt frameworks
+          # at @executable_path/../Frameworks/ which resolves inside its own
+          # .app bundle. Add an rpath to the main app's Frameworks/ directory.
+          HELPER_BIN="$FRAMEWORKS/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
+          if [ -f "$HELPER_BIN" ]; then
+            install_name_tool -add_rpath "@executable_path/../../../../../../../" "$HELPER_BIN" 2>/dev/null || true
+          fi
+
           IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/signing.keychain-db" | head -1 | sed 's/.*"\(.*\)"/\1/')
 
           # Sign inside-out: leaf nodes first, then containing bundles.
