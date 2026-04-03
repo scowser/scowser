@@ -131,8 +131,9 @@ jobs:
           find "$APP" -name "*.dylib" -type f -exec \
             codesign --force --options runtime --sign "$IDENTITY" --timestamp {} \;
 
-          # Sign the main app bundle
+          # Sign the main app bundle (entitlements grant JIT for WebEngine/V8)
           codesign --force --options runtime --sign "$IDENTITY" --timestamp \
+            --entitlements packaging/macos/scowser.entitlements \
             --deep "$APP"
 
           # Verify signature (spctl will reject until notarized, so only check codesign here)
@@ -356,7 +357,13 @@ jobs:
 
             echo "## Install"
             echo ""
-            echo "**Homebrew (macOS & Linux):**"
+            echo "**Homebrew (macOS):**"
+            echo '```bash'
+            echo "brew tap ${{ github.repository_owner }}/scowser"
+            echo "brew install --cask scowser"
+            echo '```'
+            echo ""
+            echo "**Homebrew (Linux):**"
             echo '```bash'
             echo "brew tap ${{ github.repository_owner }}/scowser"
             echo "brew install scowser"
