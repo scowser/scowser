@@ -70,3 +70,4 @@ qrc_*.cpp
 *.crt
 *.key
 *.p12
+*.cer
