@@ -120,12 +120,17 @@ jobs:
             done
           done
 
-          # Fix QtWebEngineProcess rpath — the helper looks for Qt frameworks
-          # at @executable_path/../Frameworks/ which resolves inside its own
-          # .app bundle. Add an rpath to the main app's Frameworks/ directory.
-          HELPER_BIN="$FRAMEWORKS/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess"
-          if [ -f "$HELPER_BIN" ]; then
-            install_name_tool -add_rpath "@executable_path/../../../../../../../" "$HELPER_BIN" 2>/dev/null || true
+          # Fix @executable_path refs in QtWebEngineCore — macdeployqt rewrites
+          # deps to @executable_path/../Frameworks/ which works for the main app
+          # but breaks when QtWebEngineProcess loads it (different @executable_path).
+          # Rewrite to @loader_path which resolves relative to the library itself.
+          QT_WEBENGINE_BIN="$FRAMEWORKS/QtWebEngineCore.framework/Versions/A/QtWebEngineCore"
+          if [ -f "$QT_WEBENGINE_BIN" ]; then
+            otool -L "$QT_WEBENGINE_BIN" 2>/dev/null | grep "@executable_path/../Frameworks/" | awk '{print $1}' | while read -r dep; do
+              new_dep=$(echo "$dep" | sed 's|@executable_path/../Frameworks/|@loader_path/../../|')
+              echo "Rewriting: $dep -> $new_dep"
+              install_name_tool -change "$dep" "$new_dep" "$QT_WEBENGINE_BIN" 2>/dev/null || true
+            done
           fi
 
           IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/signing.keychain-db" | head -1 | sed 's/.*"\(.*\)"/\1/')
