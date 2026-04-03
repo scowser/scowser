@@ -39,7 +39,10 @@ void NetworkManager::configureStrictTLS()
     // Enable OCSP stapling
     m_sslConfig.setOcspStaplingEnabled(true);
 
-    QSslConfiguration::setDefaultConfiguration(m_sslConfig);
+    // NOTE: Do NOT call QSslConfiguration::setDefaultConfiguration() here.
+    // Overwriting the global SSL config breaks QtWebEngineCore's internal
+    // certificate handling (crashes in setAdditionalTrustedCertificates).
+    // The config is applied per-request in createRequest() instead.
 }
 
 QNetworkReply *NetworkManager::createRequest(Operation op,
