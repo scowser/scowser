@@ -21,10 +21,10 @@ void SessionManager::createEphemeralProfile()
     // Off-the-record profile — no data written to disk
     m_ephemeralProfile = new QWebEngineProfile(this);
 
-    // Disable all persistent storage
+    // Disable persistent cookies and cache. Do NOT clear
+    // setPersistentStoragePath — Chromium needs a valid data directory.
     m_ephemeralProfile->setHttpCacheType(QWebEngineProfile::NoCache);
     m_ephemeralProfile->setPersistentCookiesPolicy(QWebEngineProfile::NoPersistentCookies);
-    m_ephemeralProfile->setPersistentStoragePath(QString());
     m_ephemeralProfile->setHttpCacheMaximumSize(0);
 
     // Disable spell checking (can phone home)
