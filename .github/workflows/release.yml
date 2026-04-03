@@ -120,18 +120,31 @@ jobs:
             done
           done
 
-          # Fix @executable_path refs in QtWebEngineCore — macdeployqt rewrites
-          # deps to @executable_path/../Frameworks/ which works for the main app
-          # but breaks when QtWebEngineProcess loads it (different @executable_path).
-          # Rewrite to @loader_path which resolves relative to the library itself.
-          QT_WEBENGINE_BIN="$FRAMEWORKS/QtWebEngineCore.framework/Versions/A/QtWebEngineCore"
-          if [ -f "$QT_WEBENGINE_BIN" ]; then
-            otool -L "$QT_WEBENGINE_BIN" 2>/dev/null | grep "@executable_path/../Frameworks/" | awk '{print $1}' | while read -r dep; do
+          # Fix @executable_path refs in ALL framework binaries — macdeployqt
+          # rewrites deps to @executable_path/../Frameworks/ which works for
+          # the main app but breaks when QtWebEngineProcess (a separate .app
+          # with a different @executable_path) loads them. Rewrite to
+          # @loader_path/../../ which resolves relative to each library itself
+          # (Versions/A/ → ../../ → Frameworks/).
+          find "$FRAMEWORKS" -name "*.framework" -type d | while read -r fw; do
+            fw_name=$(basename "$fw" .framework)
+            fw_bin="$fw/Versions/A/$fw_name"
+            [ -f "$fw_bin" ] || continue
+            otool -L "$fw_bin" 2>/dev/null | grep "@executable_path/../Frameworks/" | awk '{print $1}' | while read -r dep; do
               new_dep=$(echo "$dep" | sed 's|@executable_path/../Frameworks/|@loader_path/../../|')
-              echo "Rewriting: $dep -> $new_dep"
-              install_name_tool -change "$dep" "$new_dep" "$QT_WEBENGINE_BIN" 2>/dev/null || true
+              echo "Rewriting in $fw_name: $dep -> $new_dep"
+              install_name_tool -change "$dep" "$new_dep" "$fw_bin" 2>/dev/null || true
             done
-          fi
+          done
+
+          # Same fix for standalone dylibs in Frameworks/
+          for dylib in "$FRAMEWORKS"/*.dylib; do
+            [ -f "$dylib" ] || continue
+            otool -L "$dylib" 2>/dev/null | grep "@executable_path/../Frameworks/" | awk '{print $1}' | while read -r dep; do
+              new_dep=$(echo "$dep" | sed 's|@executable_path/../Frameworks/|@loader_path/|')
+              install_name_tool -change "$dep" "$new_dep" "$dylib" 2>/dev/null || true
+            done
+          done
 
           IDENTITY=$(security find-identity -v -p codesigning "$RUNNER_TEMP/signing.keychain-db" | head -1 | sed 's/.*"\(.*\)"/\1/')
 
