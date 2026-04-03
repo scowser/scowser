@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>scowser - A Security-Focused Web Browser</title>
+  <meta name="description" content="scowser is a security-focused web browser with built-in ad blocking, encrypted DNS, and ephemeral sessions. No telemetry. No tracking. Just browsing.">
+  <link rel="icon" type="image/png" href="logo.png">
+  <style>
+    :root {
+      --dark: #0f1923;
+      --darker: #0a1118;
+      --green: #2ecc71;
+      --green-dim: #1a9c54;
+      --green-glow: rgba(46, 204, 113, 0.15);
+      --teal: #3cdbc0;
+      --text: #e0e6ed;
+      --text-dim: #8899a6;
+      --card-bg: #162029;
+      --card-border: #1e3040;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: var(--darker);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse at 50% 0%, var(--green-glow) 0%, transparent 60%),
+        var(--darker);
+    }
+
+    .hero img {
+      width: 160px;
+      height: 160px;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 0 40px rgba(46, 204, 113, 0.3));
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero h1 span { color: var(--green); }
+
+    .hero .tagline {
+      font-size: 1.35rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: var(--darker);
+    }
+
+    .btn-primary:hover {
+      background: #27ae60;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--green);
+      transform: translateY(-2px);
+    }
+
+    .scroll-hint {
+      margin-top: 3rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* Sections */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+
+    .section-title {
+      font-size: 2.25rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title span { color: var(--green); }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      font-size: 1.1rem;
+    }
+
+    /* Install Section */
+    .install-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .install-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color 0.2s;
+    }
+
+    .install-card:hover { border-color: var(--green-dim); }
+
+    .install-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .install-card .platform-icon {
+      font-size: 1.4rem;
+    }
+
+    .install-card p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .install-card code {
+      display: block;
+      background: var(--darker);
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      color: var(--teal);
+      overflow-x: auto;
+      margin-bottom: 0.5rem;
+    }
+
+    .install-card .download-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .install-card .download-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--green);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .install-card .download-links a:hover { text-decoration: underline; }
+
+    /* Features Section */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.25s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--green-dim);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card .simple {
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    .feature-card .technical {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--card-border);
+      padding-top: 0.75rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--card-border);
+    }
+
+    footer a {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 2.5rem; }
+      .hero .tagline { font-size: 1.1rem; }
+      .hero img { width: 120px; height: 120px; }
+      section { padding: 3rem 1.25rem; }
+      .section-title { font-size: 1.75rem; }
+      .install-grid, .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <div class="hero">
+    <img src="logo.png" alt="scowser logo">
+    <h1><span>scowser</span></h1>
+    <p class="tagline">A web browser that actually respects you. Built-in security. Zero telemetry. No compromises.</p>
+    <div class="hero-buttons">
+      <a href="#install" class="btn btn-primary">Download scowser</a>
+      <a href="https://github.com/scowser/scowser" class="btn btn-secondary">View on GitHub</a>
+    </div>
+    <div class="scroll-hint">Scroll to learn more</div>
+  </div>
+
+  <!-- Install Section -->
+  <section id="install">
+    <h2 class="section-title">Get <span>scowser</span></h2>
+    <p class="section-subtitle">Pick your platform and you're up and running in under a minute.</p>
+
+    <div class="install-grid">
+
+      <!-- macOS Homebrew -->
+      <div class="install-card">
+        <h3><span class="platform-icon">&#63743;</span> macOS &mdash; Homebrew</h3>
+        <p>The easiest way to install on macOS. Installs a signed and notarized app.</p>
+        <code>brew tap scowser/scowser</code>
+        <code>brew install --cask scowser</code>
+      </div>
+
+      <!-- macOS DMG -->
+      <div class="install-card">
+        <h3><span class="platform-icon">&#63743;</span> macOS &mdash; Direct Download</h3>
+        <p>Download a DMG for your Mac. Signed and notarized by Apple.</p>
+        <div class="download-links">
+          <a href="https://github.com/scowser/scowser/releases/latest/download/scowser-macos-latest.dmg">&#8615; macOS (Latest)</a>
+          <a href="https://github.com/scowser/scowser/releases/latest/download/scowser-macos-15.dmg">&#8615; macOS 15 (Sequoia)</a>
+          <a href="https://github.com/scowser/scowser/releases/latest/download/scowser-macos-14.dmg">&#8615; macOS 14 (Sonoma)</a>
+        </div>
+        <p style="margin-top: 0.75rem; font-size: 0.8rem;">Or browse <a href="https://github.com/scowser/scowser/releases/latest" style="color: var(--green);">all releases</a></p>
+      </div>
+
+      <!-- Linux Homebrew -->
+      <div class="install-card">
+        <h3><span class="platform-icon">&#128039;</span> Linux &mdash; Homebrew</h3>
+        <p>Install from source via Linuxbrew. Builds with your system's Qt6.</p>
+        <code>brew tap scowser/scowser</code>
+        <code>brew install scowser</code>
+      </div>
+
+      <!-- Linux Direct -->
+      <div class="install-card">
+        <h3><span class="platform-icon">&#128039;</span> Linux &mdash; Direct Download</h3>
+        <p>Grab an AppImage (just run it) or a tar.gz if you prefer manual installs.</p>
+        <div class="download-links">
+          <a href="https://github.com/scowser/scowser/releases/latest/download/scowser-linux-x86_64.AppImage">&#8615; AppImage (x86_64)</a>
+          <a href="https://github.com/scowser/scowser/releases/latest/download/scowser-linux-x86_64.tar.gz">&#8615; tar.gz (x86_64)</a>
+        </div>
+        <p style="margin-top: 0.75rem; font-size: 0.8rem;">AppImage: <code style="display:inline; padding: 0.15rem 0.4rem; margin: 0;">chmod +x scowser*.AppImage && ./scowser*.AppImage</code></p>
+      </div>
+
+      <!-- Build from source -->
+      <div class="install-card" style="grid-column: 1 / -1;">
+        <h3>&#128736; Build from Source</h3>
+        <p>For developers or anyone who wants to verify every line. Requires CMake 3.22+, Qt6, and a C++20 compiler.</p>
+        <code>git clone https://github.com/scowser/scowser.git && cd scowser</code>
+        <code>cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --parallel</code>
+        <code>./build/scowser</code>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features">
+    <h2 class="section-title">What makes scowser <span>different</span></h2>
+    <p class="section-subtitle">Most browsers say they care about your privacy. scowser was designed from the ground up to prove it.</p>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128737;</span>
+        <h3>Sandboxed Tabs</h3>
+        <p class="simple">Every tab you open runs in its own isolated sandbox. If one tab gets compromised, it can't touch anything else &mdash; not your other tabs, not your files, nothing.</p>
+        <p class="technical">Leverages Chromium's multi-process architecture via Qt WebEngine, with additional OS-level sandboxing (seccomp-bpf on Linux, sandbox_init on macOS). Each renderer process is locked down to minimal privileges.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128722;</span>
+        <h3>Built-in Ad & Tracker Blocking</h3>
+        <p class="simple">Ads and trackers are stopped before they even load. No extensions to install, no settings to configure &mdash; it just works out of the box. Pages load faster and you see less junk.</p>
+        <p class="technical">Implements EasyList and EasyPrivacy filter lists via QWebEngineUrlRequestInterceptor. Requests are blocked at the network layer before leaving the browser, with zero dependency on third-party extensions.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128272;</span>
+        <h3>Encrypted DNS (DoH)</h3>
+        <p class="simple">When you type a website address, your browser has to look it up &mdash; kind of like a phone book. Normally, anyone on your network (your ISP, your coffee shop) can see those lookups. scowser encrypts them so nobody can snoop.</p>
+        <p class="technical">DNS-over-HTTPS resolution via Cloudflare (1.1.1.1) and Quad9 (9.9.9.9). All DNS queries are sent over encrypted HTTPS connections, preventing ISP and network-level DNS surveillance. Graceful fallback if DoH is unavailable.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128683;</span>
+        <h3>Zero Telemetry</h3>
+        <p class="simple">scowser doesn't phone home. Ever. No usage analytics, no crash reports sent to some server, no "anonymous" data collection. The only network traffic is the stuff you actually asked for.</p>
+        <p class="technical">All Chromium telemetry endpoints are blocked at the request interceptor level. No analytics, crash reporting, or data collection infrastructure exists in the codebase. What leaves your machine is only what you explicitly request.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128274;</span>
+        <h3>Strict TLS & Certificate Pinning</h3>
+        <p class="simple">scowser is extra paranoid about the "lock icon" in your address bar. It enforces the strongest encryption standards and double-checks that websites are who they claim to be, making impersonation attacks much harder.</p>
+        <p class="technical">Enforces HSTS preload lists, certificate transparency verification, and rejects weak cipher suites. TLS 1.2 minimum with TLS 1.3 preferred. Implements certificate pinning to detect and prevent MITM attacks.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128736;</span>
+        <h3>Content Security Policy Enforcement</h3>
+        <p class="simple">Websites can be tricked into running malicious code. scowser adds an extra layer of rules that tells the browser exactly what a page is allowed to do &mdash; and blocks anything sketchy that tries to sneak in.</p>
+        <p class="technical">Injects and enforces strict CSP headers on pages. Blocks inline script execution on pages without their own CSP. Violations are logged internally and never reported to external servers.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128065;</span>
+        <h3>Ephemeral Sessions</h3>
+        <p class="simple">When you close scowser, it's like you were never there. Cookies, browsing history, cached files &mdash; all gone. Every launch is a clean slate. You can optionally save a session if you want to pick up where you left off.</p>
+        <p class="technical">Uses an off-the-record QWebEngineProfile with zero disk persistence by default. No cookies, cache, or history survive a session. Optional session persistence is explicitly opt-in per session.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#127312;</span>
+        <h3>Open Source</h3>
+        <p class="simple">Every line of code is public. You don't have to trust our word &mdash; you can read the source, audit it, build it yourself, or contribute to it. Security through transparency, not obscurity.</p>
+        <p class="technical">MIT/Apache-2.0 dual-licensed. Built with C++20 on Qt6 WebEngine. CI includes AddressSanitizer, UBSan, ThreadSanitizer, Valgrind, and AFL++ fuzzing to catch bugs before they reach you.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://github.com/scowser/scowser">GitHub</a>
+      <a href="https://github.com/scowser/scowser/releases">Releases</a>
+      <a href="https://github.com/scowser/scowser/issues">Report a Bug</a>
+      <a href="https://github.com/scowser/scowser/blob/main/LICENSE-MIT">License</a>
+    </div>
+    <p>scowser is free and open-source software.</p>
+  </footer>
+
+</body>
+</html>
