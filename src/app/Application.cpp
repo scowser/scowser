@@ -17,7 +17,7 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.7");
+    setApplicationVersion("0.0.8");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
 
@@ -52,10 +52,11 @@ void Application::configureWebEngine()
     // Use off-the-record profile for ephemeral sessions
     auto *profile = QWebEngineProfile::defaultProfile();
 
-    // Disable all persistent storage
+    // Disable persistent cookies and cache (the default profile is already
+    // off-the-record). Do NOT clear setPersistentStoragePath — Chromium's
+    // certificate trust store needs a valid data directory.
     profile->setHttpCacheType(QWebEngineProfile::NoCache);
     profile->setPersistentCookiesPolicy(QWebEngineProfile::NoPersistentCookies);
-    profile->setPersistentStoragePath(QString());
 
     // Disable spell checking (sends data externally on some configs)
     profile->setSpellCheckEnabled(false);
