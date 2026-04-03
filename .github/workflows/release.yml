@@ -135,9 +135,8 @@ jobs:
           codesign --force --options runtime --sign "$IDENTITY" --timestamp \
             --deep "$APP"
 
-          # Verify signature
+          # Verify signature (spctl will reject until notarized, so only check codesign here)
           codesign --verify --deep --strict "$APP"
-          spctl --assess --type execute --verbose "$APP"
 
       - name: Create DMG
         run: |
