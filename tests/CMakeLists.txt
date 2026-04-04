@@ -26,3 +26,12 @@ add_executable(test_csp
 target_include_directories(test_csp PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_csp PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME CSPEnforcer COMMAND test_csp)
+
+# DNS-over-HTTPS tests
+add_executable(test_doh
+    test_doh.cpp
+    ${CMAKE_SOURCE_DIR}/src/security/DnsOverHttps.cpp
+)
+target_include_directories(test_doh PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_doh PRIVATE Qt6::Test Qt6::Core Qt6::Network)
+add_test(NAME DnsOverHttps COMMAND test_doh)

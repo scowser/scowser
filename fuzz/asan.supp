@@ -1,0 +1,10 @@
+# ASan leak suppressions for scowser
+# Suppress known leaks in system libraries (not our code)
+
+# libproxy / libglib leak in Qt's QNetworkProxyFactory
+# Triggered by QNetworkAccessManager::get() → systemProxyForQuery() → px_proxy_factory_new()
+# This is a known Ubuntu/libproxy issue, not a scowser bug.
+leak:px_proxy_factory_new
+leak:px_manager_new_with_options
+leak:libpxbackend
+leak:libproxy

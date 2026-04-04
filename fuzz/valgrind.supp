@@ -55,3 +55,80 @@
    fun:pthread_create@@GLIBC_2.34
    fun:_ZN7QThread5startENS_8PriorityE
 }
+
+{
+   libproxy_factory_new
+   Memcheck:Leak
+   ...
+   fun:px_proxy_factory_new
+}
+
+{
+   libproxy_manager_new
+   Memcheck:Leak
+   ...
+   fun:px_manager_new_with_options
+}
+
+{
+   libproxy_backend
+   Memcheck:Leak
+   ...
+   obj:*/libpxbackend*
+}
+
+{
+   libgio_extension_point
+   Memcheck:Leak
+   ...
+   fun:g_io_extension_point_implement
+}
+
+{
+   libgio_vfs_default
+   Memcheck:Leak
+   ...
+   fun:g_vfs_get_default
+}
+
+{
+   libglib_charset
+   Memcheck:Leak
+   ...
+   fun:g_get_charset
+}
+
+{
+   libglib_filename_charsets
+   Memcheck:Leak
+   ...
+   fun:g_get_filename_charsets
+}
+
+{
+   libduktape_realloc_zero
+   Memcheck:Leak
+   ...
+   obj:*/libduktape*
+}
+
+{
+   libgio_dbus_init
+   Memcheck:Leak
+   ...
+   fun:g_dbus_connection_new_for_address_sync
+}
+
+{
+   libgio_network_monitor
+   Memcheck:Leak
+   ...
+   fun:g_network_monitor_base_get_type
+}
+
+{
+   libgobject_type_register
+   Memcheck:Leak
+   ...
+   fun:g_type_register_static
+}

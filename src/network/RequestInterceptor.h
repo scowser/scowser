@@ -1,15 +1,17 @@
 #pragma once
 
 #include <QWebEngineUrlRequestInterceptor>
+#include <QSet>
 
 class AdBlocker;
-class CSPEnforcer;
+class DnsOverHttps;
 
 class RequestInterceptor : public QWebEngineUrlRequestInterceptor {
     Q_OBJECT
 
 public:
-    explicit RequestInterceptor(AdBlocker *adBlocker, QObject *parent = nullptr);
+    explicit RequestInterceptor(AdBlocker *adBlocker, DnsOverHttps *dnsResolver,
+                                QObject *parent = nullptr);
 
     void interceptRequest(QWebEngineUrlRequestInfo &info) override;
 
@@ -20,6 +22,9 @@ signals:
 private:
     bool isChromiumTelemetry(const QUrl &url) const;
     void enforceSecurityHeaders(QWebEngineUrlRequestInfo &info);
+    void prefetchDns(const QString &hostname);
 
     AdBlocker *m_adBlocker;
+    DnsOverHttps *m_dnsResolver;
+    QSet<QString> m_prefetchedHosts;
 };

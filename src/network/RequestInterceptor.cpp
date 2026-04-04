@@ -1,5 +1,6 @@
 #include "network/RequestInterceptor.h"
 #include "security/AdBlocker.h"
+#include "security/DnsOverHttps.h"
 
 #include <QUrl>
 #include <QDebug>
@@ -20,9 +21,11 @@ static const QStringList s_telemetryHosts = {
     "ssl.gstatic.com/safebrowsing",
 };
 
-RequestInterceptor::RequestInterceptor(AdBlocker *adBlocker, QObject *parent)
+RequestInterceptor::RequestInterceptor(AdBlocker *adBlocker, DnsOverHttps *dnsResolver,
+                                       QObject *parent)
     : QWebEngineUrlRequestInterceptor(parent)
     , m_adBlocker(adBlocker)
+    , m_dnsResolver(dnsResolver)
 {
 }
 
@@ -60,6 +63,9 @@ void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         return;
     }
 
+    // Pre-resolve hostname via DoH to warm the cache
+    prefetchDns(requestUrl.host());
+
     // Apply security headers
     enforceSecurityHeaders(info);
 
@@ -89,4 +95,19 @@ void RequestInterceptor::enforceSecurityHeaders(QWebEngineUrlRequestInfo &info)
     if (info.requestUrl().host() != info.firstPartyUrl().host()) {
         info.setHttpHeader("Referer", "");
     }
+}
+
+void RequestInterceptor::prefetchDns(const QString &hostname)
+{
+    if (!m_dnsResolver || hostname.isEmpty()) return;
+
+    // Already have a cached result — nothing to do
+    if (!m_dnsResolver->cachedLookup(hostname).isEmpty()) return;
+
+    // Only fire one async resolve per hostname per session to avoid flooding
+    if (m_prefetchedHosts.contains(hostname)) return;
+    m_prefetchedHosts.insert(hostname);
+
+    m_dnsResolver->resolve(hostname);
+    qDebug() << "DoH prefetch:" << hostname;
 }
