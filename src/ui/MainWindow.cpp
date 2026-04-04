@@ -9,18 +9,20 @@
 #include <QWebEngineView>
 #include <QWebEnginePage>
 #include <QStatusBar>
-#include <QVBoxLayout>
 #include <QIcon>
 #include <QSize>
+#include <QToolButton>
+#include <QMenuBar>
+#include "ui/AboutDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     setupUI();
+    setupMenuBar();
     setupToolBar();
     setupShortcuts();
 
-    // Open a blank tab on startup
     onNewTab();
 
     resize(1280, 800);
@@ -41,11 +43,29 @@ void MainWindow::setupUI()
     statusBar()->showMessage("Ready");
 }
 
+void MainWindow::setupMenuBar()
+{
+    // On macOS, "About scowser" automatically goes into the app menu
+    auto *aboutAction = new QAction("About scowser", this);
+    aboutAction->setMenuRole(QAction::AboutRole);
+    connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutDialog);
+
+    auto *helpMenu = menuBar()->addMenu("Help");
+    helpMenu->addAction(aboutAction);
+}
+
+void MainWindow::showAboutDialog()
+{
+    AboutDialog dialog(this);
+    dialog.exec();
+}
+
 void MainWindow::setupToolBar()
 {
     m_navToolBar = addToolBar("Navigation");
     m_navToolBar->setMovable(false);
     m_navToolBar->setIconSize(QSize(16, 16));
+    m_navToolBar->setFloatable(false);
 
     auto *backAction = m_navToolBar->addAction(QIcon(":/icons/back.svg"), "Back", [this]() {
         if (auto *view = m_tabWidget->currentWebView())
@@ -68,28 +88,25 @@ void MainWindow::setupToolBar()
     m_addressBar = new AddressBar(this);
     m_navToolBar->addWidget(m_addressBar);
     connect(m_addressBar, &AddressBar::urlEntered, this, &MainWindow::onNavigate);
+
 }
 
 void MainWindow::setupShortcuts()
 {
-    // New tab
     auto *newTabShortcut = new QShortcut(QKeySequence::AddTab, this);
     connect(newTabShortcut, &QShortcut::activated, this, &MainWindow::onNewTab);
 
-    // Close tab
     auto *closeTabShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), this);
     connect(closeTabShortcut, &QShortcut::activated, [this]() {
         onCloseTab(m_tabWidget->currentIndex());
     });
 
-    // Focus address bar
     auto *focusUrlShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_L), this);
     connect(focusUrlShortcut, &QShortcut::activated, [this]() {
         m_addressBar->setFocus();
         m_addressBar->selectAll();
     });
 
-    // Reload
     auto *reloadShortcut = new QShortcut(QKeySequence::Refresh, this);
     connect(reloadShortcut, &QShortcut::activated, [this]() {
         if (auto *view = m_tabWidget->currentWebView())
@@ -161,7 +178,6 @@ void MainWindow::onNewTab()
 void MainWindow::onCloseTab(int index)
 {
     if (m_tabWidget->count() <= 1) {
-        // Don't close the last tab, just clear it
         if (auto *view = m_tabWidget->webView(0)) {
             view->load(QUrl("about:blank"));
         }

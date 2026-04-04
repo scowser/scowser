@@ -26,9 +26,11 @@ private slots:
 
 private:
     void setupUI();
+    void setupMenuBar();
     void setupToolBar();
     void setupShortcuts();
     void connectTab(QWebEngineView *view);
+    void showAboutDialog();
 
     TabWidget *m_tabWidget;
     AddressBar *m_addressBar;
