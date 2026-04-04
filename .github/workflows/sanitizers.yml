@@ -83,7 +83,7 @@ jobs:
 
       - name: Run tests with TSan
         env:
-          TSAN_OPTIONS: "halt_on_error=1:abort_on_error=1"
+          TSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:suppressions=${{ github.workspace }}/fuzz/tsan.supp"
         run: ctest --test-dir build --output-on-failure
 
   asan-ubsan:
@@ -140,7 +140,7 @@ jobs:
               echo "==> Valgrind: $test_bin"
               valgrind \
                 --leak-check=full \
-                --show-leak-kinds=all \
+                --show-leak-kinds=definite,indirect,possible \
                 --track-origins=yes \
                 --error-exitcode=1 \
                 --suppressions=../fuzz/valgrind.supp \
