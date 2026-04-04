@@ -15,7 +15,7 @@ Target platforms: macOS and Linux.
 ## Build System
 
 - **CMake** (minimum 3.22)
-- **Qt6** with modules: Core, Widgets, WebEngineWidgets, Network
+- **Qt6** with modules: Core, Widgets, WebEngineWidgets, Network, Svg
 - **C++20** standard
 
 ### Build Commands

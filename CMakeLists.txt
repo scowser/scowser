@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(scowser VERSION 0.0.22 LANGUAGES CXX)
+project(scowser VERSION 0.0.23 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +16,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     WebEngineWidgets
     Network
+    Svg
 )
 
 # Source files
@@ -86,6 +87,7 @@ target_link_libraries(scowser PRIVATE
     Qt6::Widgets
     Qt6::WebEngineWidgets
     Qt6::Network
+    Qt6::Svg
 )
 
 # Platform-specific sandbox libraries

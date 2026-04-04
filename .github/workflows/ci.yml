@@ -26,7 +26,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libqt6svg6-dev libseccomp-dev
 
       - name: Configure
         run: |
