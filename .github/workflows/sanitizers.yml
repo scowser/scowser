@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev qt6-svg-dev libseccomp-dev
 
       - name: Build with ASan
         run: |
@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev qt6-svg-dev libseccomp-dev
 
       - name: Build with UBSan
         run: |
@@ -72,7 +72,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev qt6-svg-dev libseccomp-dev
 
       - name: Build with TSan
         run: |
@@ -98,7 +98,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev qt6-svg-dev libseccomp-dev
 
       - name: Build with ASan + UBSan
         run: |
@@ -126,7 +126,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev valgrind
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev qt6-svg-dev libseccomp-dev valgrind
 
       - name: Build for Valgrind
         run: |
@@ -164,7 +164,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-webengine-dev qt6-base-dev libseccomp-dev afl++
+          sudo apt-get install -y qt6-webengine-dev qt6-base-dev qt6-svg-dev libseccomp-dev afl++
 
       - name: Build fuzz targets with AFL++
         run: |
