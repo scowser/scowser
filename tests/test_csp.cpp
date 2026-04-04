@@ -11,6 +11,8 @@ private slots:
     void testBlocksDataURIInScripts();
     void testAllowsSameOrigin();
     void testAllowsHTTPS();
+    void testEnforcementScriptNotEmpty();
+    void testEnforcementScriptMonitorsViolations();
 };
 
 void TestCSPEnforcer::testDefaultPolicyApplied()
@@ -79,6 +81,30 @@ void TestCSPEnforcer::testAllowsHTTPS()
     QUrl page("https://example.com");
 
     QVERIFY(enforcer.allowsResource("script-src", resource, page));
+}
+
+void TestCSPEnforcer::testEnforcementScriptNotEmpty()
+{
+    CSPEnforcer enforcer;
+    QString script = enforcer.enforcementScript();
+
+    QVERIFY(!script.isEmpty());
+    QVERIFY(script.contains("securitypolicyviolation"));
+}
+
+void TestCSPEnforcer::testEnforcementScriptMonitorsViolations()
+{
+    CSPEnforcer enforcer;
+    QString script = enforcer.enforcementScript();
+
+    // Script should listen for CSP violation events
+    QVERIFY(script.contains("addEventListener"));
+    QVERIFY(script.contains("securitypolicyviolation"));
+    // Script should log violations with scowser branding
+    QVERIFY(script.contains("[scowser CSP]"));
+    // Script should reference violation details
+    QVERIFY(script.contains("violatedDirective"));
+    QVERIFY(script.contains("blockedURI"));
 }
 
 QTEST_MAIN(TestCSPEnforcer)
