@@ -30,6 +30,7 @@ public:
     RequestInterceptor *requestInterceptor() const { return m_requestInterceptor.get(); }
 
 private:
+    void loadStyleSheet();
     void initSecurity();
     void configureWebEngine();
     void disableTelemetry();

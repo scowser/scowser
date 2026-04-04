@@ -2,6 +2,7 @@
 
 #include <QTabWidget>
 
+class QToolButton;
 class QWebEngineView;
 
 class TabWidget : public QTabWidget {
@@ -17,4 +18,11 @@ public:
 
 signals:
     void newTabRequested();
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
+private:
+    void repositionNewTabButton();
+    QToolButton *m_newTabButton;
 };

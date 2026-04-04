@@ -10,6 +10,8 @@
 #include <QWebEnginePage>
 #include <QStatusBar>
 #include <QVBoxLayout>
+#include <QIcon>
+#include <QSize>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -43,20 +45,21 @@ void MainWindow::setupToolBar()
 {
     m_navToolBar = addToolBar("Navigation");
     m_navToolBar->setMovable(false);
+    m_navToolBar->setIconSize(QSize(16, 16));
 
-    auto *backAction = m_navToolBar->addAction("\u25C0", [this]() {
+    auto *backAction = m_navToolBar->addAction(QIcon(":/icons/back.svg"), "Back", [this]() {
         if (auto *view = m_tabWidget->currentWebView())
             view->back();
     });
     backAction->setToolTip("Back");
 
-    auto *forwardAction = m_navToolBar->addAction("\u25B6", [this]() {
+    auto *forwardAction = m_navToolBar->addAction(QIcon(":/icons/forward.svg"), "Forward", [this]() {
         if (auto *view = m_tabWidget->currentWebView())
             view->forward();
     });
     forwardAction->setToolTip("Forward");
 
-    auto *reloadAction = m_navToolBar->addAction("\u21BB", [this]() {
+    auto *reloadAction = m_navToolBar->addAction(QIcon(":/icons/reload.svg"), "Reload", [this]() {
         if (auto *view = m_tabWidget->currentWebView())
             view->reload();
     });

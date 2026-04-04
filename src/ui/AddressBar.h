@@ -3,7 +3,7 @@
 #include <QLineEdit>
 #include <QUrl>
 
-class QAction;
+class QLabel;
 
 class AddressBar : public QLineEdit {
     Q_OBJECT
@@ -18,12 +18,19 @@ public:
 signals:
     void urlEntered(const QUrl &url);
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private slots:
     void onReturnPressed();
 
 private:
     QUrl sanitizeInput(const QString &text) const;
+    void positionIcon();
 
-    QAction *m_securityAction;
+    QLabel *m_iconLabel;
     bool m_secure = false;
+
+    static constexpr int IconSize = 16;
+    static constexpr int IconMargin = 8;
 };

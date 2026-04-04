@@ -1,29 +1,37 @@
 #include "ui/TabWidget.h"
+#include "ui/ScrollableTabBar.h"
 
 #include <QWebEngineView>
 #include <QWebEngineProfile>
 #include <QWebEnginePage>
 #include <QToolButton>
+#include <QIcon>
+#include <QTabBar>
+#include <QResizeEvent>
 
 TabWidget::TabWidget(QWidget *parent)
     : QTabWidget(parent)
 {
+    setTabBar(new ScrollableTabBar(this));
     setTabsClosable(true);
     setMovable(true);
-    setDocumentMode(true);
+    setDocumentMode(false);
     setElideMode(Qt::ElideRight);
+    tabBar()->setExpanding(false);
 
-    // "New tab" button
-    auto *newTabButton = new QToolButton(this);
-    newTabButton->setText("+");
-    newTabButton->setAutoRaise(true);
-    setCornerWidget(newTabButton, Qt::TopRightCorner);
-    connect(newTabButton, &QToolButton::clicked, this, &TabWidget::newTabRequested);
+    m_newTabButton = new QToolButton(this);
+    m_newTabButton->setObjectName("newTabButton");
+    m_newTabButton->setIcon(QIcon(":/icons/new-tab.svg"));
+    m_newTabButton->setToolTip("New Tab");
+    m_newTabButton->setAutoRaise(true);
+    m_newTabButton->setFixedSize(28, 28);
+    connect(m_newTabButton, &QToolButton::clicked, this, &TabWidget::newTabRequested);
+
+    QMetaObject::invokeMethod(this, &TabWidget::repositionNewTabButton, Qt::QueuedConnection);
 }
 
 QWebEngineView *TabWidget::createTab()
 {
-    // Use off-the-record profile for ephemeral browsing
     auto *profile = QWebEngineProfile::defaultProfile();
     auto *page = new QWebEnginePage(profile, this);
     auto *view = new QWebEngineView(this);
@@ -32,6 +40,7 @@ QWebEngineView *TabWidget::createTab()
     int index = addTab(view, "New Tab");
     setCurrentIndex(index);
 
+    repositionNewTabButton();
     return view;
 }
 
@@ -52,4 +61,21 @@ void TabWidget::closeTab(int index)
 
     removeTab(index);
     view->deleteLater();
+
+    repositionNewTabButton();
+}
+
+void TabWidget::resizeEvent(QResizeEvent *event)
+{
+    QTabWidget::resizeEvent(event);
+    repositionNewTabButton();
+}
+
+void TabWidget::repositionNewTabButton()
+{
+    auto *bar = tabBar();
+    int x = width() - m_newTabButton->width() - 4;
+    int y = bar->y() + (bar->height() - m_newTabButton->height()) / 2;
+    m_newTabButton->move(x, y);
+    m_newTabButton->raise();
 }

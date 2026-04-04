@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(scowser VERSION 0.0.21 LANGUAGES CXX)
+project(scowser VERSION 0.0.22 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,6 +25,7 @@ set(SOURCES
     src/ui/MainWindow.cpp
     src/ui/TabWidget.cpp
     src/ui/AddressBar.cpp
+    src/ui/ScrollableTabBar.cpp
     src/security/AdBlocker.cpp
     src/security/DnsOverHttps.cpp
     src/security/CertificatePinner.cpp
@@ -40,6 +41,7 @@ set(HEADERS
     src/ui/MainWindow.h
     src/ui/TabWidget.h
     src/ui/AddressBar.h
+    src/ui/ScrollableTabBar.h
     src/security/AdBlocker.h
     src/security/DnsOverHttps.h
     src/security/CertificatePinner.h

@@ -47,3 +47,13 @@ target_include_directories(test_addressbar PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_addressbar PRIVATE Qt6::Test Qt6::Widgets)
 add_test(NAME AddressBar COMMAND test_addressbar)
 set_tests_properties(AddressBar PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Theme tests
+add_executable(test_theme
+    test_theme.cpp
+    ${CMAKE_SOURCE_DIR}/resources/resources.qrc
+)
+target_include_directories(test_theme PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_theme PRIVATE Qt6::Test Qt6::Widgets)
+add_test(NAME Theme COMMAND test_theme)
+set_tests_properties(Theme PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

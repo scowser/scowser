@@ -1,0 +1,219 @@
+/* scowser dark theme
+ * Palette (Catppuccin Mocha-inspired):
+ *   Base:    #1e1e2e
+ *   Mantle:  #181825
+ *   Surface: #313244
+ *   Overlay: #45475a
+ *   Text:    #cdd6f4
+ *   Subtext: #a6adc8
+ *   Blue:    #89b4fa
+ *   Green:   #a6e3a1
+ *   Red:     #f38ba8
+ */
+
+/* === Global === */
+QMainWindow {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+QStatusBar {
+    background-color: #181825;
+    color: #a6adc8;
+    border-top: 1px solid #313244;
+    font-size: 12px;
+    padding: 2px 8px;
+}
+
+/* === Toolbar === */
+QToolBar {
+    background-color: #181825;
+    border-bottom: 1px solid #313244;
+    spacing: 4px;
+    padding: 4px 8px;
+}
+
+QToolBar QToolButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+QToolBar QToolButton:hover {
+    background-color: #313244;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: #45475a;
+}
+
+/* === Address Bar === */
+AddressBar {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+    padding: 6px 4px 6px 2px;
+    font-size: 13px;
+    selection-background-color: #89b4fa;
+    selection-color: #1e1e2e;
+}
+
+AddressBar:focus {
+    border: 1px solid #89b4fa;
+}
+
+AddressBar[secure="true"] {
+    border: 1px solid #a6e3a1;
+}
+
+AddressBar[secure="false"] {
+    border: 1px solid #f38ba8;
+}
+
+/* === Tab Bar === */
+QTabWidget {
+    border: none;
+    background-color: #181825;
+}
+
+QTabWidget::pane {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    background-color: #1e1e2e;
+}
+
+QTabWidget::tab-bar {
+    left: 0px;
+    border: none;
+}
+
+QTabBar {
+    background-color: #181825;
+    border: none;
+}
+
+QTabBar::tab {
+    background-color: #181825;
+    color: #a6adc8;
+    border: none;
+    border-right: 1px solid #313244;
+    padding: 8px 16px;
+    min-width: 120px;
+    max-width: 240px;
+    font-size: 12px;
+}
+
+QTabBar::tab:selected {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border-bottom: 2px solid #89b4fa;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #313244;
+    color: #cdd6f4;
+}
+
+QTabBar::close-button {
+    image: url(:/icons/close.svg);
+    subcontrol-position: right;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+QTabBar::close-button:hover {
+    background-color: #45475a;
+}
+
+/* New-tab button */
+QToolButton#newTabButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+}
+
+QToolButton#newTabButton:hover {
+    background-color: #313244;
+}
+
+/* === Scrollbar === */
+QScrollBar:vertical {
+    background-color: #1e1e2e;
+    width: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #45475a;
+    border-radius: 5px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #585b70;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar:horizontal {
+    background-color: #1e1e2e;
+    height: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #45475a;
+    border-radius: 5px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #585b70;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0;
+}
+
+/* === Tooltip === */
+QToolTip {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* === Menu (context menus) === */
+QMenu {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 6px 24px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #45475a;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #45475a;
+    margin: 4px 8px;
+}

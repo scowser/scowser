@@ -1,8 +1,10 @@
 #include "ui/AddressBar.h"
 
-#include <QAction>
 #include <QIcon>
+#include <QLabel>
 #include <QRegularExpression>
+#include <QResizeEvent>
+#include <QStyle>
 
 AddressBar::AddressBar(QWidget *parent)
     : QLineEdit(parent)
@@ -11,10 +13,29 @@ AddressBar::AddressBar(QWidget *parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     setMinimumWidth(400);
 
-    m_securityAction = addAction(QIcon(":/icons/lock-insecure.png"), QLineEdit::LeadingPosition);
-    m_securityAction->setToolTip("Connection is not secure");
+    // Manual icon label — gives us full control over vertical centering
+    m_iconLabel = new QLabel(this);
+    m_iconLabel->setFixedSize(IconSize, IconSize);
+    m_iconLabel->setScaledContents(true);
+    m_iconLabel->setPixmap(QIcon(":/icons/lock-insecure.svg").pixmap(IconSize, IconSize));
+
+    // Reserve space on the left for the icon
+    setTextMargins(IconSize + IconMargin, 0, 0, 0);
 
     connect(this, &QLineEdit::returnPressed, this, &AddressBar::onReturnPressed);
+}
+
+void AddressBar::resizeEvent(QResizeEvent *event)
+{
+    QLineEdit::resizeEvent(event);
+    positionIcon();
+}
+
+void AddressBar::positionIcon()
+{
+    int x = IconMargin / 2 + 2;
+    int y = (height() - IconSize) / 2;
+    m_iconLabel->move(x, y);
 }
 
 void AddressBar::setUrl(const QUrl &url)
@@ -33,14 +54,17 @@ void AddressBar::setSecurityIndicator(bool secure)
     m_secure = secure;
 
     if (secure) {
-        m_securityAction->setIcon(QIcon(":/icons/lock-secure.png"));
-        m_securityAction->setToolTip("Connection is secure (HTTPS)");
-        setStyleSheet("QLineEdit { border: 2px solid #4CAF50; padding: 4px 8px; border-radius: 4px; }");
+        m_iconLabel->setPixmap(QIcon(":/icons/lock-secure.svg").pixmap(IconSize, IconSize));
+        m_iconLabel->setToolTip("Connection is secure (HTTPS)");
     } else {
-        m_securityAction->setIcon(QIcon(":/icons/lock-insecure.png"));
-        m_securityAction->setToolTip("Connection is not secure");
-        setStyleSheet("QLineEdit { border: 2px solid #f44336; padding: 4px 8px; border-radius: 4px; }");
+        m_iconLabel->setPixmap(QIcon(":/icons/lock-insecure.svg").pixmap(IconSize, IconSize));
+        m_iconLabel->setToolTip("Connection is not secure");
     }
+
+    // Dynamic property drives QSS styling (AddressBar[secure="true"] / "false")
+    setProperty("secure", secure);
+    style()->unpolish(this);
+    style()->polish(this);
 }
 
 bool AddressBar::isSecure() const
