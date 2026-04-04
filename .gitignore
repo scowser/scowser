@@ -71,3 +71,6 @@ qrc_*.cpp
 *.key
 *.p12
 *.cer
+
+# Downloaded blocklists (fetched at build time)
+resources/blocklists/*.txt
