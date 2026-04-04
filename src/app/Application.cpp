@@ -17,7 +17,7 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.17");
+    setApplicationVersion("0.0.18");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
 
@@ -41,7 +41,7 @@ void Application::initSecurity()
     m_certPinner = std::make_unique<CertificatePinner>(this);
     m_cspEnforcer = std::make_unique<CSPEnforcer>(this);
     m_sandbox = std::make_unique<ProcessSandbox>(this);
-    m_requestInterceptor = std::make_unique<RequestInterceptor>(m_adBlocker.get(), this);
+    m_requestInterceptor = std::make_unique<RequestInterceptor>(m_adBlocker.get(), m_dnsResolver.get(), this);
     m_networkManager = std::make_unique<NetworkManager>(m_certPinner.get(), this);
 
     m_sandbox->applySandbox();
@@ -81,7 +81,7 @@ void Application::configureWebEngine()
 
 void Application::disableTelemetry()
 {
-    // Disable Chromium telemetry and reporting
+    // Disable Chromium telemetry and reporting, enable DNS-over-HTTPS
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS",
         "--disable-background-networking "
         "--disable-client-side-phishing-detection "
@@ -95,5 +95,9 @@ void Application::disableTelemetry()
         "--no-pings "
         "--metrics-recording-only "
         "--safebrowsing-disable-auto-update "
+        // Enable Chromium's built-in Secure DNS (DoH) for all WebEngine requests.
+        // Mode "secure" means only DoH is used — no fallback to plaintext DNS.
+        "--dns-over-https-mode=secure "
+        "--dns-over-https-templates=https://cloudflare-dns.com/dns-query "
         "--disable-features=AutofillServerCommunication,NetworkTimeServiceQuerying");
 }

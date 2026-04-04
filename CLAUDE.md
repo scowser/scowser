@@ -53,7 +53,7 @@ src/
 │   └── SessionManager.h/cpp   # Ephemeral session management
 ├── network/
 │   ├── NetworkManager.h/cpp   # Custom QNetworkAccessManager
-│   └── RequestInterceptor.h/cpp # URL request filtering
+│   └── RequestInterceptor.h/cpp # URL request filtering + DoH prefetch
 └── sandbox/
     └── ProcessSandbox.h/cpp   # OS-level process sandboxing
 ```
@@ -75,10 +75,11 @@ src/
 
 3. **DNS-over-HTTPS (DoH)**
 
-   - Encrypted DNS resolution via HTTPS
-   - Default providers: Cloudflare (1.1.1.1), Quad9 (9.9.9.9)
+   - Two-layer approach: Chromium's built-in Secure DNS (via flags) + Qt-side DnsOverHttps resolver
+   - Chromium flags enforce `--dns-over-https-mode=secure` (no plaintext DNS fallback)
+   - Default provider: Cloudflare (1.1.1.1), configurable to Quad9 (9.9.9.9) or custom
+   - RequestInterceptor fires async DoH prefetch for cache warming on allowed requests
    - Prevents DNS snooping by ISPs and network operators
-   - Falls back gracefully if DoH is unavailable
 
 4. **No Telemetry / No Data Collection**
 
