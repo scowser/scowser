@@ -1,5 +1,4 @@
 #include <QtTest/QtTest>
-#include <QAction>
 #include <QSignalSpy>
 #include "ui/AddressBar.h"
 
@@ -74,7 +73,7 @@ void TestAddressBar::testSetSecurityIndicatorSecure()
     bar.setSecurityIndicator(true);
 
     QVERIFY(bar.isSecure());
-    QVERIFY(bar.styleSheet().contains("#4CAF50"));
+    QCOMPARE(bar.property("secure").toBool(), true);
 }
 
 void TestAddressBar::testSetSecurityIndicatorInsecure()
@@ -83,7 +82,7 @@ void TestAddressBar::testSetSecurityIndicatorInsecure()
     bar.setSecurityIndicator(false);
 
     QVERIFY(!bar.isSecure());
-    QVERIFY(bar.styleSheet().contains("#f44336"));
+    QCOMPARE(bar.property("secure").toBool(), false);
 }
 
 void TestAddressBar::testUrlEnteredSignal()

@@ -9,6 +9,7 @@
 #include "network/NetworkManager.h"
 
 #include <QIcon>
+#include <QFile>
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
@@ -19,10 +20,11 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.21");
+    setApplicationVersion("0.0.22");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
 
+    loadStyleSheet();
     disableTelemetry();
     initSecurity();
     configureWebEngine();
@@ -88,6 +90,15 @@ void Application::configureWebEngine()
     cspScript.setWorldId(QWebEngineScript::ApplicationWorld);
     cspScript.setRunsOnSubFrames(true);
     profile->scripts()->insert(cspScript);
+}
+
+void Application::loadStyleSheet()
+{
+    QFile qss(":/style/scowser.qss");
+    if (qss.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        setStyleSheet(qss.readAll());
+        qss.close();
+    }
 }
 
 void Application::disableTelemetry()

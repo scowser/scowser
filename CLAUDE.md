@@ -56,6 +56,19 @@ src/
 │   └── RequestInterceptor.h/cpp # URL request filtering + DoH prefetch
 └── sandbox/
     └── ProcessSandbox.h/cpp   # OS-level process sandboxing
+
+resources/
+├── resources.qrc               # Qt resource collection
+├── icons/
+│   ├── scowser.png/icns       # App icon
+│   ├── back.svg               # Navigation: back
+│   ├── forward.svg            # Navigation: forward
+│   ├── reload.svg             # Navigation: reload
+│   ├── new-tab.svg            # Tab bar: new tab
+│   ├── lock-secure.svg        # Address bar: HTTPS
+│   └── lock-insecure.svg      # Address bar: HTTP
+└── style/
+    └── scowser.qss            # Application-wide dark theme stylesheet
 ```
 
 ### Security Features
@@ -107,7 +120,16 @@ src/
    - Updates automatically on URL changes
    - SVG icons in resources/icons/
 
-8. **Ephemeral Sessions**
+8. **Dark Theme UI**
+
+   - Custom QSS stylesheet loaded from resources at startup (resources/style/scowser.qss)
+   - Catppuccin Mocha-inspired dark palette (#1e1e2e base, #181825 mantle, #313244 surface)
+   - SVG icons for navigation (back, forward, reload) and tab management (new-tab)
+   - SVG lock icons (green for HTTPS, red for HTTP) replacing PNG originals
+   - AddressBar uses Qt dynamic properties (`secure` bool) for QSS-driven border colors
+   - Styled tab bar with active-tab accent, toolbar, status bar, scrollbars, tooltips, and context menus
+
+9. **Ephemeral Sessions**
 
    - All browsing data cleared on exit by default
    - Off-the-record QWebEngineProfile (no disk persistence)
