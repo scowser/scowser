@@ -47,7 +47,7 @@ brew install qt@6 cmake
 
 **Linux (Debian/Ubuntu):**
 ```bash
-sudo apt install qt6-webengine-dev qt6-base-dev qt6-svg-dev cmake g++
+sudo apt install qt6-webengine-dev qt6-base-dev libqt6svg6-dev cmake g++
 ```
 
 **Linux (Fedora):**
