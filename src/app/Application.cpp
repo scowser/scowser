@@ -11,13 +11,15 @@
 #include <QIcon>
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
+#include <QWebEngineScript>
+#include <QWebEngineScriptCollection>
 #include <QtWebEngineCore/QWebEngineUrlScheme>
 
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.18");
+    setApplicationVersion("0.0.19");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
 
@@ -77,6 +79,15 @@ void Application::configureWebEngine()
     settings->setAttribute(QWebEngineSettings::WebGLEnabled, false);
     settings->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, false);
     settings->setAttribute(QWebEngineSettings::DnsPrefetchEnabled, false);
+
+    // Inject CSP enforcement script into every page at document creation
+    QWebEngineScript cspScript;
+    cspScript.setName("scowser-csp-enforcer");
+    cspScript.setSourceCode(m_cspEnforcer->enforcementScript());
+    cspScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    cspScript.setWorldId(QWebEngineScript::ApplicationWorld);
+    cspScript.setRunsOnSubFrames(true);
+    profile->scripts()->insert(cspScript);
 }
 
 void Application::disableTelemetry()
