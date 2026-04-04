@@ -217,3 +217,24 @@ QMenu::separator {
     background-color: #45475a;
     margin: 4px 8px;
 }
+
+/* === About Dialog === */
+AboutDialog {
+    background-color: #1e1e2e;
+}
+
+QMenuBar {
+    background-color: #181825;
+    color: #cdd6f4;
+    border-bottom: 1px solid #313244;
+}
+
+QMenuBar::item {
+    padding: 4px 8px;
+    background: transparent;
+}
+
+QMenuBar::item:selected {
+    background-color: #313244;
+    border-radius: 4px;
+}
