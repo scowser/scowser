@@ -100,7 +100,14 @@ src/
    - Blocks inline scripts on pages without CSP
    - Reports violations to an internal log (never external)
 
-7. **Ephemeral Sessions**
+7. **Security Indicator**
+
+   - Lock icon in the address bar via QAction (LeadingPosition)
+   - Green locked icon for HTTPS, red unlocked icon for HTTP
+   - Updates automatically on URL changes
+   - SVG icons in resources/icons/
+
+8. **Ephemeral Sessions**
 
    - All browsing data cleared on exit by default
    - Off-the-record QWebEngineProfile (no disk persistence)

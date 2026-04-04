@@ -13,6 +13,7 @@ A security-focused web browser built in C++ with Qt6 WebEngine.
 - **DNS-over-HTTPS** — Encrypted DNS via Cloudflare or Quad9, preventing ISP snooping
 - **Zero Telemetry** — No analytics, no crash reports, no data collection whatsoever
 - **Strict TLS** — Certificate pinning, TLS 1.2+ only, certificate transparency checks
+- **Security Indicator** — Lock icon in the address bar shows connection security at a glance
 - **CSP Enforcement** — Content Security Policy headers injected and enforced
 - **Ephemeral by Default** — All browsing data wiped on exit; no persistent cookies, cache, or history
 
