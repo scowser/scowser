@@ -16,7 +16,6 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     WebEngineWidgets
     Network
-    Svg
 )
 
 # Source files
@@ -85,7 +84,6 @@ target_link_libraries(scowser PRIVATE
     Qt6::Widgets
     Qt6::WebEngineWidgets
     Qt6::Network
-    Qt6::Svg
 )
 
 # Platform-specific sandbox libraries
