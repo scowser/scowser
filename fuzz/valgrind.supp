@@ -55,3 +55,17 @@
    fun:pthread_create@@GLIBC_2.34
    fun:_ZN7QThread5startENS_8PriorityE
 }
+
+{
+   libproxy_factory_new
+   Memcheck:Leak
+   ...
+   fun:px_proxy_factory_new
+}
+
+{
+   libproxy_manager_new
+   Memcheck:Leak
+   ...
+   fun:px_manager_new_with_options
+}
