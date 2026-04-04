@@ -46,3 +46,4 @@ add_executable(test_addressbar
 target_include_directories(test_addressbar PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_addressbar PRIVATE Qt6::Test Qt6::Widgets)
 add_test(NAME AddressBar COMMAND test_addressbar)
+set_tests_properties(AddressBar PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
