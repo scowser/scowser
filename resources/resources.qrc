@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file alias="icons/scowser.png">icons/scowser.png</file>
+        <file alias="blocklists/easylist.txt">blocklists/easylist.txt</file>
+        <file alias="blocklists/easyprivacy.txt">blocklists/easyprivacy.txt</file>
     </qresource>
 </RCC>

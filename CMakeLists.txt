@@ -7,6 +7,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Download EasyList/EasyPrivacy filter lists if not present
+include(cmake/DownloadBlocklists.cmake)
+
 # Find Qt6
 find_package(Qt6 REQUIRED COMPONENTS
     Core
