@@ -6,6 +6,7 @@
 class TabWidget;
 class AddressBar;
 class QToolBar;
+class QToolButton;
 class QWebEngineView;
 
 class MainWindow : public QMainWindow {
@@ -32,8 +33,11 @@ private:
     void connectTab(QWebEngineView *view);
     void showAboutDialog();
     void showSettingsDialog();
+    void showDownloadsDialog();
+    void onActiveDownloadsChanged(int count);
 
     TabWidget *m_tabWidget;
     AddressBar *m_addressBar;
     QToolBar *m_navToolBar;
+    QToolButton *m_downloadButton;
 };

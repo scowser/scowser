@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QStandardPaths>
 #include "security/DnsOverHttps.h"
 
 class Settings : public QObject {
@@ -16,6 +17,10 @@ public:
     void setDnsProvider(DnsOverHttps::Provider provider);
     QString customDnsUrl() const;
     void setCustomDnsUrl(const QString &url);
+
+    // Downloads
+    QString downloadDirectory() const;
+    void setDownloadDirectory(const QString &path);
 
     // Search
     QString searchEngineUrl() const;
@@ -34,6 +39,7 @@ public:
     void setJavaScriptEnabled(bool enabled);
 
 signals:
+    void downloadDirectoryChanged(const QString &path);
     void dnsProviderChanged(DnsOverHttps::Provider provider);
     void customDnsUrlChanged(const QString &url);
     void searchEngineUrlChanged(const QString &url);

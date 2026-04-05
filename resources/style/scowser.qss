@@ -345,3 +345,84 @@ SettingsDialog QLabel#settingsNote {
     font-size: 11px;
     padding-left: 24px;
 }
+
+SettingsDialog QLabel#downloadDirLabel {
+    color: #a6adc8;
+    font-size: 12px;
+}
+
+/* === Download Button === */
+QToolButton#downloadButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+QToolButton#downloadButton:hover {
+    background-color: #313244;
+}
+
+QToolButton#downloadButton:pressed {
+    background-color: #45475a;
+}
+
+/* === Downloads Dialog === */
+DownloadsDialog {
+    background-color: #1e1e2e;
+}
+
+DownloadsDialog QScrollArea {
+    border: none;
+    background-color: #1e1e2e;
+}
+
+DownloadsDialog QWidget#downloadItem {
+    background-color: #313244;
+    border-radius: 6px;
+    margin: 2px 0;
+}
+
+DownloadsDialog QLabel#downloadFileName {
+    color: #cdd6f4;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+DownloadsDialog QLabel#downloadStatus {
+    color: #a6adc8;
+    font-size: 12px;
+}
+
+DownloadsDialog QLabel#downloadsEmpty {
+    color: #a6adc8;
+    font-size: 14px;
+}
+
+DownloadsDialog QProgressBar {
+    background-color: #45475a;
+    border: none;
+    border-radius: 3px;
+    height: 6px;
+    text-align: center;
+}
+
+DownloadsDialog QProgressBar::chunk {
+    background-color: #89b4fa;
+    border-radius: 3px;
+}
+
+QPushButton#downloadActionBtn {
+    background-color: #45475a;
+    color: #cdd6f4;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 12px;
+}
+
+QPushButton#downloadActionBtn:hover {
+    background-color: #585b70;
+}

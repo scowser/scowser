@@ -12,6 +12,7 @@ class CSPEnforcer;
 class ProcessSandbox;
 class RequestInterceptor;
 class NetworkManager;
+class DownloadManager;
 
 class Application : public QApplication {
     Q_OBJECT
@@ -30,6 +31,7 @@ public:
     ProcessSandbox *sandbox() const { return m_sandbox.get(); }
     CSPEnforcer *cspEnforcer() const { return m_cspEnforcer.get(); }
     RequestInterceptor *requestInterceptor() const { return m_requestInterceptor.get(); }
+    DownloadManager *downloadManager() const { return m_downloadManager.get(); }
 
 private:
     void loadStyleSheet();
@@ -48,4 +50,5 @@ private:
     std::unique_ptr<ProcessSandbox> m_sandbox;
     std::unique_ptr<RequestInterceptor> m_requestInterceptor;
     std::unique_ptr<NetworkManager> m_networkManager;
+    std::unique_ptr<DownloadManager> m_downloadManager;
 };

@@ -79,3 +79,24 @@ target_include_directories(test_settingsdialog PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_settingsdialog PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)
 add_test(NAME SettingsDialog COMMAND test_settingsdialog)
 set_tests_properties(SettingsDialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Download manager tests
+add_executable(test_downloadmanager
+    test_downloadmanager.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/DownloadManager.cpp
+)
+target_include_directories(test_downloadmanager PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_downloadmanager PRIVATE Qt6::Test Qt6::Core Qt6::WebEngineWidgets)
+add_test(NAME DownloadManager COMMAND test_downloadmanager)
+set_tests_properties(DownloadManager PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Downloads dialog tests
+add_executable(test_downloadsdialog
+    test_downloadsdialog.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/DownloadsDialog.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/DownloadManager.cpp
+)
+target_include_directories(test_downloadsdialog PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_downloadsdialog PRIVATE Qt6::Test Qt6::Widgets Qt6::WebEngineWidgets)
+add_test(NAME DownloadsDialog COMMAND test_downloadsdialog)
+set_tests_properties(DownloadsDialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
