@@ -238,3 +238,110 @@ QMenuBar::item:selected {
     background-color: #313244;
     border-radius: 4px;
 }
+
+/* === Settings Dialog === */
+SettingsDialog {
+    background-color: #1e1e2e;
+}
+
+SettingsDialog QTabWidget::pane {
+    border: 1px solid #313244;
+    background-color: #1e1e2e;
+}
+
+SettingsDialog QTabBar::tab {
+    background-color: #181825;
+    color: #a6adc8;
+    border: none;
+    border-right: 1px solid #313244;
+    padding: 8px 20px;
+    font-size: 12px;
+}
+
+SettingsDialog QTabBar::tab:selected {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border-bottom: 2px solid #89b4fa;
+}
+
+SettingsDialog QTabBar::tab:hover:!selected {
+    background-color: #313244;
+    color: #cdd6f4;
+}
+
+SettingsDialog QGroupBox {
+    color: #cdd6f4;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding: 16px 12px 8px 12px;
+    font-weight: bold;
+}
+
+SettingsDialog QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 4px;
+}
+
+SettingsDialog QCheckBox {
+    color: #cdd6f4;
+    spacing: 8px;
+    padding: 4px 0;
+}
+
+SettingsDialog QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #45475a;
+    border-radius: 3px;
+    background-color: #313244;
+}
+
+SettingsDialog QCheckBox::indicator:checked {
+    background-color: #89b4fa;
+    border-color: #89b4fa;
+}
+
+SettingsDialog QComboBox {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    min-height: 24px;
+}
+
+SettingsDialog QComboBox:hover {
+    border-color: #89b4fa;
+}
+
+SettingsDialog QComboBox::drop-down {
+    border: none;
+    padding-right: 8px;
+}
+
+SettingsDialog QComboBox QAbstractItemView {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    selection-background-color: #45475a;
+}
+
+SettingsDialog QLineEdit {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+SettingsDialog QLineEdit:focus {
+    border-color: #89b4fa;
+}
+
+SettingsDialog QLabel#settingsNote {
+    color: #a6adc8;
+    font-size: 11px;
+    padding-left: 24px;
+}

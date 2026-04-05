@@ -83,13 +83,18 @@ bool RequestInterceptor::isChromiumTelemetry(const QUrl &url) const
     return false;
 }
 
+void RequestInterceptor::setDoNotTrack(bool enabled)
+{
+    m_doNotTrack = enabled;
+}
+
 void RequestInterceptor::enforceSecurityHeaders(QWebEngineUrlRequestInfo &info)
 {
-    // Set Do-Not-Track header
-    info.setHttpHeader("DNT", "1");
-
-    // Set Sec-GPC (Global Privacy Control)
-    info.setHttpHeader("Sec-GPC", "1");
+    // Set Do-Not-Track and Global Privacy Control headers when enabled
+    if (m_doNotTrack) {
+        info.setHttpHeader("DNT", "1");
+        info.setHttpHeader("Sec-GPC", "1");
+    }
 
     // Remove referrer for cross-origin requests
     if (info.requestUrl().host() != info.firstPartyUrl().host()) {

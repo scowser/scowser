@@ -57,3 +57,25 @@ target_include_directories(test_theme PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_theme PRIVATE Qt6::Test Qt6::Widgets)
 add_test(NAME Theme COMMAND test_theme)
 set_tests_properties(Theme PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Settings tests
+add_executable(test_settings
+    test_settings.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/Settings.cpp
+    ${CMAKE_SOURCE_DIR}/src/security/DnsOverHttps.cpp
+)
+target_include_directories(test_settings PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_settings PRIVATE Qt6::Test Qt6::Core Qt6::Network)
+add_test(NAME Settings COMMAND test_settings)
+
+# Settings dialog tests
+add_executable(test_settingsdialog
+    test_settingsdialog.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/SettingsDialog.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/Settings.cpp
+    ${CMAKE_SOURCE_DIR}/src/security/DnsOverHttps.cpp
+)
+target_include_directories(test_settingsdialog PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_settingsdialog PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)
+add_test(NAME SettingsDialog COMMAND test_settingsdialog)
+set_tests_properties(SettingsDialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

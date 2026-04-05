@@ -27,6 +27,9 @@ public:
     int ruleCount() const { return m_rules.size(); }
     int blockedCount() const { return m_blockedCount; }
 
+    bool isEnabled() const { return m_enabled; }
+    void setEnabled(bool enabled);
+
     void loadDefaultLists();
     void loadFilterList(const QString &filePath);
     void addCustomRule(const QString &rule);
@@ -38,6 +41,7 @@ private:
     void parseRule(const QString &line);
     void addDomainRule(const QString &domain, bool isException);
 
+    bool m_enabled = true;
     QSet<QString> m_blockedDomains;
     QSet<QString> m_allowedDomains;
     QVector<FilterRule> m_rules;

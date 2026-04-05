@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <memory>
 
+class Settings;
 class SessionManager;
 class AdBlocker;
 class DnsOverHttps;
@@ -21,6 +22,7 @@ public:
 
     static Application *instance();
 
+    Settings *settings() const { return m_settings.get(); }
     SessionManager *sessionManager() const { return m_sessionManager.get(); }
     AdBlocker *adBlocker() const { return m_adBlocker.get(); }
     DnsOverHttps *dnsResolver() const { return m_dnsResolver.get(); }
@@ -34,7 +36,10 @@ private:
     void initSecurity();
     void configureWebEngine();
     void disableTelemetry();
+    void applySettings();
+    void connectSettings();
 
+    std::unique_ptr<Settings> m_settings;
     std::unique_ptr<SessionManager> m_sessionManager;
     std::unique_ptr<AdBlocker> m_adBlocker;
     std::unique_ptr<DnsOverHttps> m_dnsResolver;

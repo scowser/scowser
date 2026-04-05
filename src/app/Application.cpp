@@ -1,4 +1,5 @@
 #include "app/Application.h"
+#include "app/Settings.h"
 #include "security/SessionManager.h"
 #include "security/AdBlocker.h"
 #include "security/DnsOverHttps.h"
@@ -20,9 +21,11 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.25");
+    setApplicationVersion("0.0.26");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
+
+    m_settings = std::make_unique<Settings>(this);
 
     loadStyleSheet();
     disableTelemetry();
@@ -49,6 +52,9 @@ void Application::initSecurity()
     m_networkManager = std::make_unique<NetworkManager>(m_certPinner.get(), this);
 
     m_sandbox->applySandbox();
+
+    applySettings();
+    connectSettings();
 }
 
 void Application::configureWebEngine()
@@ -71,7 +77,7 @@ void Application::configureWebEngine()
     // Configure default settings
     auto *settings = profile->settings();
     settings->setAttribute(QWebEngineSettings::AutoLoadImages, true);
-    settings->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+    settings->setAttribute(QWebEngineSettings::JavascriptEnabled, m_settings->javaScriptEnabled());
     settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, false);
     settings->setAttribute(QWebEngineSettings::JavascriptCanAccessClipboard, false);
     settings->setAttribute(QWebEngineSettings::LocalStorageEnabled, false);
@@ -122,4 +128,38 @@ void Application::disableTelemetry()
         "--dns-over-https-mode=secure "
         "--dns-over-https-templates=https://cloudflare-dns.com/dns-query "
         "--disable-features=AutofillServerCommunication,NetworkTimeServiceQuerying");
+}
+
+void Application::applySettings()
+{
+    m_dnsResolver->setProvider(m_settings->dnsProvider());
+    if (m_settings->dnsProvider() == DnsOverHttps::Custom)
+        m_dnsResolver->setCustomProvider(m_settings->customDnsUrl());
+
+    m_sessionManager->setEphemeral(m_settings->ephemeralSessions());
+    m_adBlocker->setEnabled(m_settings->adBlockingEnabled());
+    m_requestInterceptor->setDoNotTrack(m_settings->doNotTrack());
+}
+
+void Application::connectSettings()
+{
+    connect(m_settings.get(), &Settings::dnsProviderChanged,
+            m_dnsResolver.get(), &DnsOverHttps::setProvider);
+
+    connect(m_settings.get(), &Settings::customDnsUrlChanged,
+            m_dnsResolver.get(), &DnsOverHttps::setCustomProvider);
+
+    connect(m_settings.get(), &Settings::ephemeralSessionsChanged,
+            m_sessionManager.get(), &SessionManager::setEphemeral);
+
+    connect(m_settings.get(), &Settings::adBlockingEnabledChanged,
+            m_adBlocker.get(), &AdBlocker::setEnabled);
+
+    connect(m_settings.get(), &Settings::doNotTrackChanged,
+            m_requestInterceptor.get(), &RequestInterceptor::setDoNotTrack);
+
+    connect(m_settings.get(), &Settings::javaScriptEnabledChanged, this, [](bool enabled) {
+        auto *profile = QWebEngineProfile::defaultProfile();
+        profile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, enabled);
+    });
 }
