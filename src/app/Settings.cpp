@@ -1,5 +1,6 @@
 #include "app/Settings.h"
 
+static const char *KeyDownloadDirectory = "downloads/directory";
 static const char *KeyDnsProvider = "dns/provider";
 static const char *KeyDnsCustomUrl = "dns/customUrl";
 static const char *KeySearchEngineUrl = "search/engineUrl";
@@ -20,6 +21,22 @@ Settings::Settings(const QString &filePath, QObject *parent)
     : QObject(parent)
     , m_settings(filePath, QSettings::IniFormat)
 {
+}
+
+// --- Downloads ---
+
+QString Settings::downloadDirectory() const
+{
+    return m_settings.value(KeyDownloadDirectory,
+        QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).toString();
+}
+
+void Settings::setDownloadDirectory(const QString &path)
+{
+    if (downloadDirectory() == path)
+        return;
+    m_settings.setValue(KeyDownloadDirectory, path);
+    emit downloadDirectoryChanged(path);
 }
 
 // --- DNS ---

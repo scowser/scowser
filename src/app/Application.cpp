@@ -8,6 +8,7 @@
 #include "sandbox/ProcessSandbox.h"
 #include "network/RequestInterceptor.h"
 #include "network/NetworkManager.h"
+#include "app/DownloadManager.h"
 
 #include <QIcon>
 #include <QFile>
@@ -50,6 +51,7 @@ void Application::initSecurity()
     m_sandbox = std::make_unique<ProcessSandbox>(this);
     m_requestInterceptor = std::make_unique<RequestInterceptor>(m_adBlocker.get(), m_dnsResolver.get(), this);
     m_networkManager = std::make_unique<NetworkManager>(m_certPinner.get(), this);
+    m_downloadManager = std::make_unique<DownloadManager>(this);
 
     m_sandbox->applySandbox();
 
@@ -96,6 +98,10 @@ void Application::configureWebEngine()
     cspScript.setWorldId(QWebEngineScript::ApplicationWorld);
     cspScript.setRunsOnSubFrames(true);
     profile->scripts()->insert(cspScript);
+
+    // Connect download requests from the profile to the download manager
+    connect(profile, &QWebEngineProfile::downloadRequested,
+            m_downloadManager.get(), &DownloadManager::onDownloadRequested);
 }
 
 void Application::loadStyleSheet()
@@ -139,6 +145,7 @@ void Application::applySettings()
     m_sessionManager->setEphemeral(m_settings->ephemeralSessions());
     m_adBlocker->setEnabled(m_settings->adBlockingEnabled());
     m_requestInterceptor->setDoNotTrack(m_settings->doNotTrack());
+    m_downloadManager->setDownloadDirectory(m_settings->downloadDirectory());
 }
 
 void Application::connectSettings()
@@ -157,6 +164,9 @@ void Application::connectSettings()
 
     connect(m_settings.get(), &Settings::doNotTrackChanged,
             m_requestInterceptor.get(), &RequestInterceptor::setDoNotTrack);
+
+    connect(m_settings.get(), &Settings::downloadDirectoryChanged,
+            m_downloadManager.get(), &DownloadManager::setDownloadDirectory);
 
     connect(m_settings.get(), &Settings::javaScriptEnabledChanged, this, [](bool enabled) {
         auto *profile = QWebEngineProfile::defaultProfile();

@@ -8,6 +8,7 @@
         <file alias="icons/reload.svg">icons/reload.svg</file>
         <file alias="icons/new-tab.svg">icons/new-tab.svg</file>
         <file alias="icons/close.svg">icons/close.svg</file>
+        <file alias="icons/download.svg">icons/download.svg</file>
         <file alias="style/scowser.qss">style/scowser.qss</file>
         <file alias="blocklists/easylist.txt">blocklists/easylist.txt</file>
         <file alias="blocklists/easyprivacy.txt">blocklists/easyprivacy.txt</file>

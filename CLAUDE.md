@@ -41,12 +41,14 @@ src/
 ├── main.cpp                    # Entry point
 ├── app/
 │   ├── Application.h/cpp      # QApplication subclass, global setup
-│   └── Settings.h/cpp         # User preferences (QSettings-backed)
+│   ├── Settings.h/cpp         # User preferences (QSettings-backed)
+│   └── DownloadManager.h/cpp  # Download handling and tracking
 ├── ui/
 │   ├── MainWindow.h/cpp       # Main browser window
 │   ├── TabWidget.h/cpp        # Tab bar and tab management
 │   ├── AddressBar.h/cpp       # URL bar with security indicators
-│   └── SettingsDialog.h/cpp   # Preferences dialog (Privacy + Security tabs)
+│   ├── SettingsDialog.h/cpp   # Preferences dialog (General + Privacy + Security tabs)
+│   └── DownloadsDialog.h/cpp  # Downloads list with progress and actions
 ├── security/
 │   ├── AdBlocker.h/cpp        # EasyList-based ad/tracker blocking
 │   ├── DnsOverHttps.h/cpp     # DoH resolver (Cloudflare/Quad9)
@@ -68,7 +70,8 @@ resources/
 │   ├── reload.svg             # Navigation: reload
 │   ├── new-tab.svg            # Tab bar: new tab
 │   ├── lock-secure.svg        # Address bar: HTTPS
-│   └── lock-insecure.svg      # Address bar: HTTP
+│   ├── lock-insecure.svg      # Address bar: HTTP
+│   └── download.svg           # Toolbar: downloads
 └── style/
     └── scowser.qss            # Application-wide dark theme stylesheet
 ```
@@ -141,11 +144,20 @@ resources/
 10. **Settings Framework**
 
     - `Settings` class backed by `QSettings` (INI format, persisted to user config dir)
-    - `SettingsDialog` with Privacy and Security tabs, live-apply (changes take effect immediately)
-    - Accessible via menu bar: macOS app menu (Preferences) / Help > Settings on Linux
-    - Configurable options: DNS provider (Cloudflare/Quad9/Custom), search engine, ephemeral sessions, Do Not Track, ad blocking, JavaScript
+    - `SettingsDialog` with General, Privacy, and Security tabs, live-apply (changes take effect immediately)
+    - Accessible via menu bar: macOS app menu (Preferences) / Help > Preferences on Linux
+    - Configurable options: download directory, DNS provider (Cloudflare/Quad9/Custom), search engine, ephemeral sessions, Do Not Track, ad blocking, JavaScript
     - Signal-based architecture: `Settings` emits change signals, `Application` connects them to security components
     - All settings have secure defaults (no config file needed for safe operation)
+
+11. **Download Manager**
+
+    - `DownloadManager` handles `QWebEngineProfile::downloadRequested` signals
+    - Accepts downloads, sets configurable download directory (default: ~/Downloads)
+    - Tracks download progress and state (in-progress, completed, cancelled, interrupted)
+    - `DownloadsDialog` shows download list with progress bars, file sizes, and action buttons (Open File, Show in Folder)
+    - Toolbar download button to the right of the address bar with active download count indicator
+    - Download directory configurable in Preferences > General tab
 
 ## Code Conventions
 

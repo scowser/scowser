@@ -32,7 +32,7 @@ void TestSettingsDialog::testDialogCreation()
     Settings settings(path);
     SettingsDialog dialog(&settings);
 
-    QCOMPARE(dialog.windowTitle(), QString("Settings"));
+    QCOMPARE(dialog.windowTitle(), QString("Preferences"));
     QCOMPARE(dialog.isVisible(), false);
 
     QFile::remove(path);

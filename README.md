@@ -18,6 +18,7 @@ A security-focused web browser built in C++ with Qt6 WebEngine.
 - **Ephemeral by Default** — All browsing data wiped on exit; no persistent cookies, cache, or history
 - **Dark Theme** — Custom dark UI with SVG icons, styled tabs, toolbar, and address bar
 - **Configurable Settings** — DNS provider, search engine, ad blocking, JavaScript, and privacy options via a built-in settings dialog
+- **Download Manager** — Built-in download handling with progress tracking, configurable download directory, and toolbar indicator
 
 ## Install
 

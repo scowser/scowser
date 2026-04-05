@@ -6,6 +6,9 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -13,12 +16,13 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent)
     : QDialog(parent)
     , m_settings(settings)
 {
-    setWindowTitle("Settings");
+    setWindowTitle("Preferences");
     setFixedSize(500, 400);
 
     auto *layout = new QVBoxLayout(this);
     auto *tabs = new QTabWidget(this);
 
+    setupGeneralTab(tabs);
     setupPrivacyTab(tabs);
     setupSecurityTab(tabs);
 
@@ -26,6 +30,37 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent)
 
     loadFromSettings();
     connectWidgets();
+}
+
+void SettingsDialog::setupGeneralTab(QTabWidget *tabs)
+{
+    auto *page = new QWidget;
+    auto *layout = new QVBoxLayout(page);
+
+    // Downloads group
+    auto *downloadsGroup = new QGroupBox("Downloads");
+    auto *downloadsLayout = new QHBoxLayout(downloadsGroup);
+
+    m_downloadDirLabel = new QLabel;
+    m_downloadDirLabel->setObjectName("downloadDirLabel");
+
+    auto *browseBtn = new QPushButton("Browse...");
+    browseBtn->setObjectName("downloadActionBtn");
+    connect(browseBtn, &QPushButton::clicked, this, [this]() {
+        QString dir = QFileDialog::getExistingDirectory(this, "Select Download Directory",
+                                                         m_settings->downloadDirectory());
+        if (!dir.isEmpty()) {
+            m_settings->setDownloadDirectory(dir);
+            m_downloadDirLabel->setText(dir);
+        }
+    });
+
+    downloadsLayout->addWidget(m_downloadDirLabel, 1);
+    downloadsLayout->addWidget(browseBtn);
+
+    layout->addWidget(downloadsGroup);
+    layout->addStretch();
+    tabs->addTab(page, "General");
 }
 
 void SettingsDialog::setupPrivacyTab(QTabWidget *tabs)
@@ -91,6 +126,9 @@ void SettingsDialog::setupSecurityTab(QTabWidget *tabs)
 
 void SettingsDialog::loadFromSettings()
 {
+    // General
+    m_downloadDirLabel->setText(m_settings->downloadDirectory());
+
     m_dnsProviderCombo->setCurrentIndex(static_cast<int>(m_settings->dnsProvider()));
     m_customDnsEdit->setText(m_settings->customDnsUrl());
     m_customDnsEdit->setVisible(m_settings->dnsProvider() == DnsOverHttps::Custom);

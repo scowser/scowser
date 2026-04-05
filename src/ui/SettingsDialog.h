@@ -4,6 +4,7 @@
 
 class Settings;
 class QComboBox;
+class QLabel;
 class QLineEdit;
 class QCheckBox;
 class QTabWidget;
@@ -15,6 +16,7 @@ public:
     explicit SettingsDialog(Settings *settings, QWidget *parent = nullptr);
 
 private:
+    void setupGeneralTab(QTabWidget *tabs);
     void setupPrivacyTab(QTabWidget *tabs);
     void setupSecurityTab(QTabWidget *tabs);
     void loadFromSettings();
@@ -28,6 +30,9 @@ private:
     QComboBox *m_searchEngineCombo;
     QCheckBox *m_ephemeralCheck;
     QCheckBox *m_dntCheck;
+
+    // General tab
+    QLabel *m_downloadDirLabel;
 
     // Security tab
     QCheckBox *m_adBlockCheck;

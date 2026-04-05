@@ -15,8 +15,10 @@
 #include <QMenuBar>
 #include "ui/AboutDialog.h"
 #include "ui/SettingsDialog.h"
+#include "ui/DownloadsDialog.h"
 #include "app/Application.h"
 #include "app/Settings.h"
+#include "app/DownloadManager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -81,6 +83,21 @@ void MainWindow::showSettingsDialog()
     dialog.exec();
 }
 
+void MainWindow::showDownloadsDialog()
+{
+    DownloadsDialog dialog(Application::instance()->downloadManager(), this);
+    dialog.exec();
+}
+
+void MainWindow::onActiveDownloadsChanged(int count)
+{
+    if (count > 0) {
+        m_downloadButton->setToolTip(QString("Downloads (%1 active)").arg(count));
+    } else {
+        m_downloadButton->setToolTip("Downloads");
+    }
+}
+
 void MainWindow::setupToolBar()
 {
     m_navToolBar = addToolBar("Navigation");
@@ -110,6 +127,17 @@ void MainWindow::setupToolBar()
     m_navToolBar->addWidget(m_addressBar);
     connect(m_addressBar, &AddressBar::urlEntered, this, &MainWindow::onNavigate);
 
+    // Download button (right of address bar)
+    m_downloadButton = new QToolButton(this);
+    m_downloadButton->setIcon(QIcon(":/icons/download.svg"));
+    m_downloadButton->setToolTip("Downloads");
+    m_downloadButton->setObjectName("downloadButton");
+    connect(m_downloadButton, &QToolButton::clicked, this, &MainWindow::showDownloadsDialog);
+    m_navToolBar->addWidget(m_downloadButton);
+
+    // Update button when active download count changes
+    auto *mgr = Application::instance()->downloadManager();
+    connect(mgr, &DownloadManager::activeCountChanged, this, &MainWindow::onActiveDownloadsChanged);
 }
 
 void MainWindow::setupShortcuts()
