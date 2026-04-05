@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(scowser VERSION 0.0.25 LANGUAGES CXX)
+project(scowser VERSION 0.0.26 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,7 +23,9 @@ find_package(Qt6 REQUIRED COMPONENTS
 set(SOURCES
     src/main.cpp
     src/app/Application.cpp
+    src/app/Settings.cpp
     src/ui/MainWindow.cpp
+    src/ui/SettingsDialog.cpp
     src/ui/TabWidget.cpp
     src/ui/AddressBar.cpp
     src/ui/ScrollableTabBar.cpp
@@ -40,7 +42,9 @@ set(SOURCES
 
 set(HEADERS
     src/app/Application.h
+    src/app/Settings.h
     src/ui/MainWindow.h
+    src/ui/SettingsDialog.h
     src/ui/TabWidget.h
     src/ui/AddressBar.h
     src/ui/ScrollableTabBar.h

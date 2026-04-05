@@ -40,11 +40,13 @@ cmake --build build --parallel
 src/
 ├── main.cpp                    # Entry point
 ├── app/
-│   └── Application.h/cpp      # QApplication subclass, global setup
+│   ├── Application.h/cpp      # QApplication subclass, global setup
+│   └── Settings.h/cpp         # User preferences (QSettings-backed)
 ├── ui/
 │   ├── MainWindow.h/cpp       # Main browser window
 │   ├── TabWidget.h/cpp        # Tab bar and tab management
-│   └── AddressBar.h/cpp       # URL bar with security indicators
+│   ├── AddressBar.h/cpp       # URL bar with security indicators
+│   └── SettingsDialog.h/cpp   # Preferences dialog (Privacy + Security tabs)
 ├── security/
 │   ├── AdBlocker.h/cpp        # EasyList-based ad/tracker blocking
 │   ├── DnsOverHttps.h/cpp     # DoH resolver (Cloudflare/Quad9)
@@ -135,6 +137,15 @@ resources/
    - Off-the-record QWebEngineProfile (no disk persistence)
    - No cookies, cache, or history survive a session
    - Optional "remember this session" for user convenience
+
+10. **Settings Framework**
+
+    - `Settings` class backed by `QSettings` (INI format, persisted to user config dir)
+    - `SettingsDialog` with Privacy and Security tabs, live-apply (changes take effect immediately)
+    - Accessible via menu bar: macOS app menu (Preferences) / Help > Settings on Linux
+    - Configurable options: DNS provider (Cloudflare/Quad9/Custom), search engine, ephemeral sessions, Do Not Track, ad blocking, JavaScript
+    - Signal-based architecture: `Settings` emits change signals, `Application` connects them to security components
+    - All settings have secure defaults (no config file needed for safe operation)
 
 ## Code Conventions
 

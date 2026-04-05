@@ -31,6 +31,7 @@ private:
     void setupShortcuts();
     void connectTab(QWebEngineView *view);
     void showAboutDialog();
+    void showSettingsDialog();
 
     TabWidget *m_tabWidget;
     AddressBar *m_addressBar;

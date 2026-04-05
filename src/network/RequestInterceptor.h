@@ -15,6 +15,9 @@ public:
 
     void interceptRequest(QWebEngineUrlRequestInfo &info) override;
 
+    bool doNotTrack() const { return m_doNotTrack; }
+    void setDoNotTrack(bool enabled);
+
 signals:
     void requestBlocked(const QUrl &url);
     void requestAllowed(const QUrl &url);
@@ -27,4 +30,5 @@ private:
     AdBlocker *m_adBlocker;
     DnsOverHttps *m_dnsResolver;
     QSet<QString> m_prefetchedHosts;
+    bool m_doNotTrack = true;
 };

@@ -14,6 +14,9 @@
 #include <QToolButton>
 #include <QMenuBar>
 #include "ui/AboutDialog.h"
+#include "ui/SettingsDialog.h"
+#include "app/Application.h"
+#include "app/Settings.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -22,6 +25,12 @@ MainWindow::MainWindow(QWidget *parent)
     setupMenuBar();
     setupToolBar();
     setupShortcuts();
+
+    // Apply initial search engine URL and connect for future changes
+    auto *settings = Application::instance()->settings();
+    m_addressBar->setSearchEngineUrl(settings->searchEngineUrl());
+    connect(settings, &Settings::searchEngineUrlChanged,
+            m_addressBar, &AddressBar::setSearchEngineUrl);
 
     onNewTab();
 
@@ -50,13 +59,25 @@ void MainWindow::setupMenuBar()
     aboutAction->setMenuRole(QAction::AboutRole);
     connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutDialog);
 
+    // On macOS, PreferencesRole places this in the app menu automatically
+    auto *settingsAction = new QAction("Preferences...", this);
+    settingsAction->setMenuRole(QAction::PreferencesRole);
+    connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettingsDialog);
+
     auto *helpMenu = menuBar()->addMenu("Help");
     helpMenu->addAction(aboutAction);
+    helpMenu->addAction(settingsAction);
 }
 
 void MainWindow::showAboutDialog()
 {
     AboutDialog dialog(this);
+    dialog.exec();
+}
+
+void MainWindow::showSettingsDialog()
+{
+    SettingsDialog dialog(Application::instance()->settings(), this);
     dialog.exec();
 }
 

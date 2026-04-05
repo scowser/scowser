@@ -71,8 +71,16 @@ AdBlocker::AdBlocker(QObject *parent)
     loadDefaultLists();
 }
 
+void AdBlocker::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
+}
+
 bool AdBlocker::shouldBlock(const QUrl &url, const QUrl &firstPartyUrl) const
 {
+    if (!m_enabled)
+        return false;
+
     QString host = url.host().toLower();
     QString urlString = url.toString();
 

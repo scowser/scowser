@@ -72,6 +72,11 @@ bool AddressBar::isSecure() const
     return m_secure;
 }
 
+void AddressBar::setSearchEngineUrl(const QString &url)
+{
+    m_searchEngineUrl = url;
+}
+
 void AddressBar::onReturnPressed()
 {
     QUrl url = sanitizeInput(text().trimmed());
@@ -98,6 +103,6 @@ QUrl AddressBar::sanitizeInput(const QString &text) const
         return QUrl::fromUserInput("https://" + text);
     }
 
-    // Treat as a search query — use DuckDuckGo (privacy-respecting)
-    return QUrl("https://duckduckgo.com/?q=" + QUrl::toPercentEncoding(text));
+    // Treat as a search query — use configured search engine (default: DuckDuckGo)
+    return QUrl(m_searchEngineUrl.arg(QString::fromUtf8(QUrl::toPercentEncoding(text))));
 }
