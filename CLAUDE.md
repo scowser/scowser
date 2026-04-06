@@ -48,7 +48,8 @@ src/
 │   ├── TabWidget.h/cpp        # Tab bar and tab management
 │   ├── AddressBar.h/cpp       # URL bar with security indicators
 │   ├── SettingsDialog.h/cpp   # Preferences dialog (General + Privacy + Security tabs)
-│   └── DownloadsDialog.h/cpp  # Downloads list with progress and actions
+│   ├── DownloadsDialog.h/cpp  # Downloads list with progress and actions
+│   └── LogPanel.h/cpp         # Live log viewer dock widget with syntax highlighting
 ├── security/
 │   ├── AdBlocker.h/cpp        # EasyList-based ad/tracker blocking
 │   ├── DnsOverHttps.h/cpp     # DoH resolver (Cloudflare/Quad9)
@@ -158,6 +159,16 @@ resources/
     - `DownloadsDialog` shows download list with progress bars, file sizes, and action buttons (Open File, Show in Folder)
     - Toolbar download button to the right of the address bar with active download count indicator
     - Download directory configurable in Preferences > General tab
+
+12. **Live Log Viewer**
+
+    - `LogPanel` is a `QDockWidget` that captures all Qt log messages (`qDebug`, `qWarning`, `qCritical`, etc.) in real time
+    - Custom `LogHighlighter` (`QSyntaxHighlighter`) colors timestamps, log levels, component names, URLs, quoted strings, and numbers
+    - Accessible via View > Show Logs menu item
+    - Default dock position: right side (vertical pane); toggle button switches to bottom (horizontal pane)
+    - Auto-scrolls to latest messages when scrolled to bottom; preserves scroll position otherwise
+    - Clear button to reset the log view; max 10,000 lines to bound memory usage
+    - Catppuccin Mocha color scheme: blue for DEBUG, green for INFO, yellow for WARNING, red for CRITICAL/FATAL
 
 ## Code Conventions
 

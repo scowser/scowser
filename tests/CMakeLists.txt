@@ -100,3 +100,13 @@ target_include_directories(test_downloadsdialog PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_downloadsdialog PRIVATE Qt6::Test Qt6::Widgets Qt6::WebEngineWidgets)
 add_test(NAME DownloadsDialog COMMAND test_downloadsdialog)
 set_tests_properties(DownloadsDialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Log panel tests
+add_executable(test_logpanel
+    test_logpanel.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/LogPanel.cpp
+)
+target_include_directories(test_logpanel PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_logpanel PRIVATE Qt6::Test Qt6::Widgets)
+add_test(NAME LogPanel COMMAND test_logpanel)
+set_tests_properties(LogPanel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
