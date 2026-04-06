@@ -132,3 +132,40 @@
    ...
    fun:g_type_register_static
 }
+
+# Qt QSyntaxHighlighter / QTextDocument SSE over-reads (Qt 6.4 false positives)
+# These occur in QString internal operations triggered by QPlainTextEdit::appendPlainText
+# when a QSyntaxHighlighter is attached. The SSE/AVX instructions read past the end of
+# allocated buffers for alignment, which is safe but flagged by Valgrind.
+
+{
+   qt_text_block_sse_overread
+   Memcheck:Addr16
+   ...
+   fun:_ZNK10QTextBlock4textEv
+}
+
+{
+   qt_text_block_uninit_cond
+   Memcheck:Cond
+   ...
+   fun:_ZNK10QTextBlock4textEv
+}
+
+{
+   qt_string_realloc_sse_overread
+   Memcheck:Addr16
+   ...
+   fun:_ZN7QString11reallocDataElN10QArrayData16AllocationOptionE
+   ...
+   fun:_ZNK10QTextBlock4textEv
+}
+
+{
+   qt_string_realloc_uninit_cond
+   Memcheck:Cond
+   ...
+   fun:_ZN7QString11reallocDataElN10QArrayData16AllocationOptionE
+   ...
+   fun:_ZNK10QTextBlock4textEv
+}
