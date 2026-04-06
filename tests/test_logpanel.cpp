@@ -4,6 +4,23 @@
 #include <QMainWindow>
 #include "ui/LogPanel.h"
 
+static bool runningUnderValgrind()
+{
+#ifdef __linux__
+    return qEnvironmentVariableIsSet("RUNNING_UNDER_VALGRIND");
+#else
+    return false;
+#endif
+}
+
+static bool shouldSkipHighlighterTests()
+{
+#ifdef SANITIZER_BUILD
+    return true;
+#endif
+    return runningUnderValgrind();
+}
+
 class TestLogPanel : public QObject {
     Q_OBJECT
 
@@ -31,6 +48,10 @@ void TestLogPanel::testPanelCreation()
 
 void TestLogPanel::testAppendMessage()
 {
+    if (shouldSkipHighlighterTests()) {
+        QSKIP("Skipping under Valgrind/sanitizer (Qt QSyntaxHighlighter SSE false positives)");
+    }
+
     QMainWindow mainWin;
     LogPanel panel(&mainWin);
 
@@ -44,6 +65,10 @@ void TestLogPanel::testAppendMessage()
 
 void TestLogPanel::testLogLevels()
 {
+    if (shouldSkipHighlighterTests()) {
+        QSKIP("Skipping under Valgrind/sanitizer (Qt QSyntaxHighlighter SSE false positives)");
+    }
+
     QMainWindow mainWin;
     LogPanel panel(&mainWin);
 
@@ -64,6 +89,10 @@ void TestLogPanel::testLogLevels()
 
 void TestLogPanel::testClearLog()
 {
+    if (shouldSkipHighlighterTests()) {
+        QSKIP("Skipping under Valgrind/sanitizer (Qt QSyntaxHighlighter SSE false positives)");
+    }
+
     QMainWindow mainWin;
     LogPanel panel(&mainWin);
 
