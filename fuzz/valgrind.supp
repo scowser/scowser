@@ -139,33 +139,15 @@
 # allocated buffers for alignment, which is safe but flagged by Valgrind.
 
 {
-   qt_text_block_sse_overread
+   qt_logpanel_append_addr16
    Memcheck:Addr16
    ...
-   fun:_ZNK10QTextBlock4textEv
+   fun:*LogPanel*appendMessage*
 }
 
 {
-   qt_text_block_uninit_cond
+   qt_logpanel_append_cond
    Memcheck:Cond
    ...
-   fun:_ZNK10QTextBlock4textEv
-}
-
-{
-   qt_string_realloc_sse_overread
-   Memcheck:Addr16
-   ...
-   fun:_ZN7QString11reallocDataElN10QArrayData16AllocationOptionE
-   ...
-   fun:_ZNK10QTextBlock4textEv
-}
-
-{
-   qt_string_realloc_uninit_cond
-   Memcheck:Cond
-   ...
-   fun:_ZN7QString11reallocDataElN10QArrayData16AllocationOptionE
-   ...
-   fun:_ZNK10QTextBlock4textEv
+   fun:*LogPanel*appendMessage*
 }
