@@ -1,6 +1,7 @@
 #include "ui/MainWindow.h"
 #include "ui/TabWidget.h"
 #include "ui/AddressBar.h"
+#include "ui/LogPanel.h"
 
 #include <QToolBar>
 #include <QAction>
@@ -51,6 +52,9 @@ void MainWindow::setupUI()
     connect(m_tabWidget, &TabWidget::tabCloseRequested, this, &MainWindow::onCloseTab);
     connect(m_tabWidget, &TabWidget::newTabRequested, this, &MainWindow::onNewTab);
 
+    m_logPanel = new LogPanel(this);
+    m_logPanel->hide();
+
     statusBar()->showMessage("Ready");
 }
 
@@ -65,6 +69,15 @@ void MainWindow::setupMenuBar()
     auto *settingsAction = new QAction("Preferences...", this);
     settingsAction->setMenuRole(QAction::PreferencesRole);
     connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettingsDialog);
+
+    // View menu
+    auto *viewMenu = menuBar()->addMenu("View");
+    auto *toggleLogAction = new QAction("Show Logs", this);
+    toggleLogAction->setCheckable(true);
+    toggleLogAction->setChecked(false);
+    connect(toggleLogAction, &QAction::triggered, this, &MainWindow::toggleLogPanel);
+    connect(m_logPanel, &QDockWidget::visibilityChanged, toggleLogAction, &QAction::setChecked);
+    viewMenu->addAction(toggleLogAction);
 
     auto *helpMenu = menuBar()->addMenu("Help");
     helpMenu->addAction(aboutAction);
@@ -233,4 +246,9 @@ void MainWindow::onCloseTab(int index)
         return;
     }
     m_tabWidget->closeTab(index);
+}
+
+void MainWindow::toggleLogPanel()
+{
+    m_logPanel->setVisible(!m_logPanel->isVisible());
 }

@@ -5,6 +5,7 @@
 
 class TabWidget;
 class AddressBar;
+class LogPanel;
 class QToolBar;
 class QToolButton;
 class QWebEngineView;
@@ -35,9 +36,11 @@ private:
     void showSettingsDialog();
     void showDownloadsDialog();
     void onActiveDownloadsChanged(int count);
+    void toggleLogPanel();
 
     TabWidget *m_tabWidget;
     AddressBar *m_addressBar;
     QToolBar *m_navToolBar;
     QToolButton *m_downloadButton;
+    LogPanel *m_logPanel;
 };
