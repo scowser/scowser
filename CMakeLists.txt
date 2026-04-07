@@ -25,6 +25,7 @@ set(SOURCES
     src/app/Application.cpp
     src/app/Settings.cpp
     src/app/DownloadManager.cpp
+    src/app/FavoritesManager.cpp
     src/ui/MainWindow.cpp
     src/ui/SettingsDialog.cpp
     src/ui/DownloadsDialog.cpp
@@ -33,6 +34,7 @@ set(SOURCES
     src/ui/ScrollableTabBar.cpp
     src/ui/AboutDialog.cpp
     src/ui/LogPanel.cpp
+    src/ui/FavoritesPanel.cpp
     src/security/AdBlocker.cpp
     src/security/DnsOverHttps.cpp
     src/security/CertificatePinner.cpp
@@ -47,6 +49,7 @@ set(HEADERS
     src/app/Application.h
     src/app/Settings.h
     src/app/DownloadManager.h
+    src/app/FavoritesManager.h
     src/ui/MainWindow.h
     src/ui/SettingsDialog.h
     src/ui/DownloadsDialog.h
@@ -55,6 +58,7 @@ set(HEADERS
     src/ui/ScrollableTabBar.h
     src/ui/AboutDialog.h
     src/ui/LogPanel.h
+    src/ui/FavoritesPanel.h
     src/security/AdBlocker.h
     src/security/DnsOverHttps.h
     src/security/CertificatePinner.h

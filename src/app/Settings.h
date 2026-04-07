@@ -18,6 +18,10 @@ public:
     QString customDnsUrl() const;
     void setCustomDnsUrl(const QString &url);
 
+    // General
+    QString homepage() const;
+    void setHomepage(const QString &url);
+
     // Downloads
     QString downloadDirectory() const;
     void setDownloadDirectory(const QString &path);
@@ -39,6 +43,7 @@ public:
     void setJavaScriptEnabled(bool enabled);
 
 signals:
+    void homepageChanged(const QString &url);
     void downloadDirectoryChanged(const QString &path);
     void dnsProviderChanged(DnsOverHttps::Provider provider);
     void customDnsUrlChanged(const QString &url);

@@ -6,9 +6,12 @@
 class TabWidget;
 class AddressBar;
 class LogPanel;
+class FavoritesPanel;
 class QToolBar;
 class QToolButton;
 class QWebEngineView;
+class QLabel;
+class QTimer;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -22,6 +25,7 @@ private slots:
     void onCurrentTabChanged(int index);
     void onTabTitleChanged(const QString &title);
     void onTabUrlChanged(const QUrl &url);
+    void onTabIconChanged(const QIcon &icon);
     void onLoadProgress(int progress);
     void onNewTab();
     void onCloseTab(int index);
@@ -37,10 +41,22 @@ private:
     void showDownloadsDialog();
     void onActiveDownloadsChanged(int count);
     void toggleLogPanel();
+    void toggleFavoritesPanel();
+    void toggleFavoriteForCurrentPage();
+    void updateStarButton();
+    void onFavoriteActivated(const QString &url);
+    void onLinkHovered(const QString &url);
+    void showStatusOverlay(const QString &text);
+    void hideStatusOverlay();
+    void loadNewTabPage(QWebEngineView *view);
 
     TabWidget *m_tabWidget;
     AddressBar *m_addressBar;
     QToolBar *m_navToolBar;
     QToolButton *m_downloadButton;
+    QToolButton *m_starButton;
     LogPanel *m_logPanel;
+    FavoritesPanel *m_favoritesPanel;
+    QLabel *m_statusOverlay;
+    QTimer *m_statusTimer;
 };

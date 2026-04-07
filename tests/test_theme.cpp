@@ -36,7 +36,7 @@ void TestTheme::testStyleSheetContainsCoreSelectors()
     QVERIFY2(content.contains("QToolBar"), "Stylesheet must style QToolBar");
     QVERIFY2(content.contains("QTabBar"), "Stylesheet must style QTabBar");
     QVERIFY2(content.contains("AddressBar"), "Stylesheet must style AddressBar");
-    QVERIFY2(content.contains("QStatusBar"), "Stylesheet must style QStatusBar");
+    QVERIFY2(content.contains("statusOverlay"), "Stylesheet must style status overlay");
 }
 
 void TestTheme::testIconResourcesExist()

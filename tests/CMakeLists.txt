@@ -110,3 +110,23 @@ target_include_directories(test_logpanel PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_logpanel PRIVATE Qt6::Test Qt6::Widgets)
 add_test(NAME LogPanel COMMAND test_logpanel)
 set_tests_properties(LogPanel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Favorites manager tests
+add_executable(test_favoritesmanager
+    test_favoritesmanager.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/FavoritesManager.cpp
+)
+target_include_directories(test_favoritesmanager PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_favoritesmanager PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME FavoritesManager COMMAND test_favoritesmanager)
+
+# Favorites panel tests
+add_executable(test_favoritespanel
+    test_favoritespanel.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/FavoritesPanel.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/FavoritesManager.cpp
+)
+target_include_directories(test_favoritespanel PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_favoritespanel PRIVATE Qt6::Test Qt6::Widgets)
+add_test(NAME FavoritesPanel COMMAND test_favoritespanel)
+set_tests_properties(FavoritesPanel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
