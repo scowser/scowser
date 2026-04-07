@@ -9,6 +9,8 @@ static const char *KeyDoNotTrack = "privacy/doNotTrack";
 static const char *KeyAdBlocking = "security/adBlocking";
 static const char *KeyJavaScript = "security/javaScript";
 
+static const char *KeyHomepage = "general/homepage";
+
 static const char *DefaultSearchEngineUrl = "https://duckduckgo.com/?q=%1";
 
 Settings::Settings(QObject *parent)
@@ -21,6 +23,21 @@ Settings::Settings(const QString &filePath, QObject *parent)
     : QObject(parent)
     , m_settings(filePath, QSettings::IniFormat)
 {
+}
+
+// --- General ---
+
+QString Settings::homepage() const
+{
+    return m_settings.value(KeyHomepage, QString()).toString();
+}
+
+void Settings::setHomepage(const QString &url)
+{
+    if (homepage() == url)
+        return;
+    m_settings.setValue(KeyHomepage, url);
+    emit homepageChanged(url);
 }
 
 // --- Downloads ---

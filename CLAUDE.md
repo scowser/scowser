@@ -42,14 +42,16 @@ src/
 ├── app/
 │   ├── Application.h/cpp      # QApplication subclass, global setup
 │   ├── Settings.h/cpp         # User preferences (QSettings-backed)
-│   └── DownloadManager.h/cpp  # Download handling and tracking
+│   ├── DownloadManager.h/cpp  # Download handling and tracking
+│   └── FavoritesManager.h/cpp # Favorites/bookmarks management and persistence
 ├── ui/
 │   ├── MainWindow.h/cpp       # Main browser window
 │   ├── TabWidget.h/cpp        # Tab bar and tab management
 │   ├── AddressBar.h/cpp       # URL bar with security indicators
 │   ├── SettingsDialog.h/cpp   # Preferences dialog (General + Privacy + Security tabs)
 │   ├── DownloadsDialog.h/cpp  # Downloads list with progress and actions
-│   └── LogPanel.h/cpp         # Live log viewer dock widget with syntax highlighting
+│   ├── LogPanel.h/cpp         # Live log viewer dock widget with syntax highlighting
+│   └── FavoritesPanel.h/cpp   # Favorites dock widget with tree view, search, drag-and-drop
 ├── security/
 │   ├── AdBlocker.h/cpp        # EasyList-based ad/tracker blocking
 │   ├── DnsOverHttps.h/cpp     # DoH resolver (Cloudflare/Quad9)
@@ -72,7 +74,9 @@ resources/
 │   ├── new-tab.svg            # Tab bar: new tab
 │   ├── lock-secure.svg        # Address bar: HTTPS
 │   ├── lock-insecure.svg      # Address bar: HTTP
-│   └── download.svg           # Toolbar: downloads
+│   ├── download.svg           # Toolbar: downloads
+│   ├── star.svg               # Toolbar: unfavorited state
+│   └── star-filled.svg        # Toolbar: favorited state (yellow)
 └── style/
     └── scowser.qss            # Application-wide dark theme stylesheet
 ```
@@ -133,7 +137,9 @@ resources/
    - SVG icons for navigation (back, forward, reload) and tab management (new-tab)
    - SVG lock icons (green for HTTPS, red for HTTP) replacing PNG originals
    - AddressBar uses Qt dynamic properties (`secure` bool) for QSS-driven border colors
-   - Styled tab bar with active-tab accent, toolbar, status bar, scrollbars, tooltips, and context menus
+   - Styled tab bar with active-tab accent, toolbar, scrollbars, tooltips, and context menus
+   - Firefox-style floating status overlay (bottom-left, appears on link hover / page load)
+   - Site favicons displayed on tab labels and in the favorites panel
 
 9. **Ephemeral Sessions**
 
@@ -147,7 +153,8 @@ resources/
     - `Settings` class backed by `QSettings` (INI format, persisted to user config dir)
     - `SettingsDialog` with General, Privacy, and Security tabs, live-apply (changes take effect immediately)
     - Accessible via menu bar: macOS app menu (Preferences) / Help > Preferences on Linux
-    - Configurable options: download directory, DNS provider (Cloudflare/Quad9/Custom), search engine, ephemeral sessions, Do Not Track, ad blocking, JavaScript
+    - Configurable options: homepage (custom URL or default scowser page), download directory, DNS provider (Cloudflare/Quad9/Custom), search engine, ephemeral sessions, Do Not Track, ad blocking, JavaScript
+    - Default new tab page: dark-themed scowser branding with keyboard shortcut hints; replaced by custom homepage URL if configured in General settings
     - Signal-based architecture: `Settings` emits change signals, `Application` connects them to security components
     - All settings have secure defaults (no config file needed for safe operation)
 
@@ -160,7 +167,26 @@ resources/
     - Toolbar download button to the right of the address bar with active download count indicator
     - Download directory configurable in Preferences > General tab
 
-12. **Live Log Viewer**
+12. **Favorites (Bookmarks) System**
+
+    - `FavoritesManager` handles persistence via JSON at `~/.config/scowser/favorites.json`
+    - Data model: `FavoriteItem` (id, url, title, groupId, pinned, position) and `FavoriteGroup` (id, name, pinned, position, collapsed)
+    - Star button in toolbar (between address bar and downloads) toggles favorite for current page
+    - `FavoritesPanel` is a `QDockWidget` with `QTreeWidget` for hierarchical display; shows site favicons next to each favorite
+    - Supports: add, remove, rename, pin, reorder favorites; create, rename, delete, pin groups
+    - Drag-and-drop reordering within the tree
+    - Search/filter box for finding favorites
+    - Context menus for all management operations
+    - Move favorites between groups via context menu
+    - Groups can be deleted (keeping or removing items)
+    - Collapsed state per group persists across sessions
+    - Pinned items/groups sort to top
+    - Accessible via View > Show Favorites menu or Ctrl+B shortcut
+    - Ctrl+D to toggle favorite for current page
+    - Close button (×) in panel toolbar to hide panel
+    - Default dock position: left side; allowed areas: left, right, bottom
+
+13. **Live Log Viewer**
 
     - `LogPanel` is a `QDockWidget` that captures all Qt log messages (`qDebug`, `qWarning`, `qCritical`, etc.) in real time
     - Custom `LogHighlighter` (`QSyntaxHighlighter`) colors timestamps, log levels, component names, URLs, quoted strings, and numbers

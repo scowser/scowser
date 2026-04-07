@@ -32,6 +32,8 @@ private:
     QCheckBox *m_dntCheck;
 
     // General tab
+    QCheckBox *m_useDefaultHomepage;
+    QLineEdit *m_homepageEdit;
     QLabel *m_downloadDirLabel;
 
     // Security tab

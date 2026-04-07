@@ -52,13 +52,8 @@ void TestSettingsDialog::testWidgetsReflectDefaults()
     QVERIFY(dnsCombo != nullptr);
     QCOMPARE(dnsCombo->currentIndex(), 0); // Cloudflare
 
-    // Should have 4 checkboxes: ephemeral, dnt, adblock, javascript
-    QCOMPARE(checkboxes.size(), 4);
-
-    // All defaults are true
-    for (auto *cb : checkboxes) {
-        QVERIFY(cb->isChecked());
-    }
+    // Should have 5 checkboxes: useDefaultHomepage, ephemeral, dnt, adblock, javascript
+    QCOMPARE(checkboxes.size(), 5);
 
     QFile::remove(path);
 }

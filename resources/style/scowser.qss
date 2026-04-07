@@ -17,12 +17,16 @@ QMainWindow {
     color: #cdd6f4;
 }
 
-QStatusBar {
+/* === Status Overlay (Firefox-style link hover) === */
+QLabel#statusOverlay {
     background-color: #181825;
     color: #a6adc8;
-    border-top: 1px solid #313244;
+    border: 1px solid #313244;
+    border-bottom: none;
+    border-left: none;
+    border-top-right-radius: 6px;
     font-size: 12px;
-    padding: 2px 8px;
+    padding: 3px 10px;
 }
 
 /* === Toolbar === */
@@ -471,4 +475,157 @@ QPlainTextEdit#logView {
     border: none;
     selection-background-color: #45475a;
     selection-color: #cdd6f4;
+}
+
+/* === Star (Favorite) Button === */
+QToolButton#starButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+QToolButton#starButton:hover {
+    background-color: #313244;
+}
+
+QToolButton#starButton:pressed {
+    background-color: #45475a;
+}
+
+/* === Favorites Panel === */
+QDockWidget#favoritesPanel {
+    background-color: #1e1e2e;
+    border: none;
+}
+
+QWidget#favoritesPanelContainer {
+    background-color: #1e1e2e;
+    border: none;
+}
+
+QWidget#favoritesPanelToolbar {
+    background-color: #181825;
+    border-bottom: 1px solid #313244;
+}
+
+QLabel#favoritesPanelTitle {
+    color: #cdd6f4;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QToolButton#favAddGroupButton {
+    background-color: transparent;
+    color: #a6adc8;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 12px;
+}
+
+QToolButton#favAddGroupButton:hover {
+    background-color: #313244;
+    color: #cdd6f4;
+}
+
+QToolButton#favCloseButton {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+QToolButton#favCloseButton:hover {
+    background-color: #313244;
+}
+
+QLineEdit#favSearchBox {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: none;
+    border-bottom: 1px solid #45475a;
+    padding: 6px 8px;
+    font-size: 12px;
+}
+
+QLineEdit#favSearchBox:focus {
+    border-bottom: 1px solid #89b4fa;
+}
+
+QTreeWidget#favTree {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border: none;
+    outline: none;
+    font-size: 13px;
+}
+
+QTreeWidget#favTree::item {
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 1px 4px;
+}
+
+QTreeWidget#favTree::item:selected {
+    background-color: #313244;
+    color: #cdd6f4;
+}
+
+QTreeWidget#favTree::item:hover:!selected {
+    background-color: #181825;
+}
+
+QTreeWidget#favTree::branch {
+    background-color: transparent;
+    border-image: none;
+    image: none;
+}
+
+/* === Favorites Dialog (New Group / Rename) === */
+QLabel#favDialogLabel {
+    color: #cdd6f4;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QLineEdit#favDialogInput {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+QLineEdit#favDialogInput:focus {
+    border: 1px solid #89b4fa;
+}
+
+QDialogButtonBox#favDialogButtons QPushButton {
+    background-color: #45475a;
+    color: #cdd6f4;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 20px;
+    font-size: 13px;
+    min-width: 80px;
+}
+
+QDialogButtonBox#favDialogButtons QPushButton:hover {
+    background-color: #585b70;
+}
+
+QDialogButtonBox#favDialogButtons QPushButton:default {
+    background-color: #89b4fa;
+    color: #1e1e2e;
+}
+
+QDialogButtonBox#favDialogButtons QPushButton:default:hover {
+    background-color: #b4d0fb;
 }

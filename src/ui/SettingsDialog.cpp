@@ -37,6 +37,23 @@ void SettingsDialog::setupGeneralTab(QTabWidget *tabs)
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
 
+    // Homepage group
+    auto *homepageGroup = new QGroupBox("Homepage");
+    auto *homepageLayout = new QVBoxLayout(homepageGroup);
+
+    m_useDefaultHomepage = new QCheckBox("Use default scowser page");
+    homepageLayout->addWidget(m_useDefaultHomepage);
+
+    m_homepageEdit = new QLineEdit;
+    m_homepageEdit->setPlaceholderText("https://example.com");
+    homepageLayout->addWidget(m_homepageEdit);
+
+    auto *homepageNote = new QLabel("URL to load when opening a new tab");
+    homepageNote->setObjectName("settingsNote");
+    homepageLayout->addWidget(homepageNote);
+
+    layout->addWidget(homepageGroup);
+
     // Downloads group
     auto *downloadsGroup = new QGroupBox("Downloads");
     auto *downloadsLayout = new QHBoxLayout(downloadsGroup);
@@ -127,6 +144,12 @@ void SettingsDialog::setupSecurityTab(QTabWidget *tabs)
 void SettingsDialog::loadFromSettings()
 {
     // General
+    QString hp = m_settings->homepage();
+    bool useDefault = hp.isEmpty();
+    m_useDefaultHomepage->setChecked(useDefault);
+    m_homepageEdit->setText(hp);
+    m_homepageEdit->setEnabled(!useDefault);
+
     m_downloadDirLabel->setText(m_settings->downloadDirectory());
 
     m_dnsProviderCombo->setCurrentIndex(static_cast<int>(m_settings->dnsProvider()));
@@ -146,6 +169,20 @@ void SettingsDialog::loadFromSettings()
 
 void SettingsDialog::connectWidgets()
 {
+    // Homepage
+    connect(m_useDefaultHomepage, &QCheckBox::toggled, this, [this](bool checked) {
+        m_homepageEdit->setEnabled(!checked);
+        if (checked) {
+            m_homepageEdit->clear();
+            m_settings->setHomepage(QString());
+        }
+    });
+
+    connect(m_homepageEdit, &QLineEdit::editingFinished, this, [this]() {
+        if (!m_useDefaultHomepage->isChecked())
+            m_settings->setHomepage(m_homepageEdit->text().trimmed());
+    });
+
     // DNS provider
     connect(m_dnsProviderCombo, &QComboBox::currentIndexChanged, this, [this](int index) {
         auto provider = static_cast<DnsOverHttps::Provider>(index);

@@ -4,6 +4,7 @@
 #include <QWebEngineView>
 #include <QWebEngineProfile>
 #include <QWebEnginePage>
+#include <QColor>
 #include <QToolButton>
 #include <QIcon>
 #include <QTabBar>
@@ -34,6 +35,7 @@ QWebEngineView *TabWidget::createTab()
 {
     auto *profile = QWebEngineProfile::defaultProfile();
     auto *page = new QWebEnginePage(profile, this);
+    page->setBackgroundColor(QColor("#1e1e2e"));
     auto *view = new QWebEngineView(this);
     view->setPage(page);
 

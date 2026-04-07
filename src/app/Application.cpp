@@ -9,6 +9,7 @@
 #include "network/RequestInterceptor.h"
 #include "network/NetworkManager.h"
 #include "app/DownloadManager.h"
+#include "app/FavoritesManager.h"
 
 #include <QIcon>
 #include <QFile>
@@ -52,6 +53,7 @@ void Application::initSecurity()
     m_requestInterceptor = std::make_unique<RequestInterceptor>(m_adBlocker.get(), m_dnsResolver.get(), this);
     m_networkManager = std::make_unique<NetworkManager>(m_certPinner.get(), this);
     m_downloadManager = std::make_unique<DownloadManager>(this);
+    m_favoritesManager = std::make_unique<FavoritesManager>(this);
 
     m_sandbox->applySandbox();
 

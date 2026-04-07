@@ -19,6 +19,7 @@ A security-focused web browser built in C++ with Qt6 WebEngine.
 - **Dark Theme** — Custom dark UI with SVG icons, styled tabs, toolbar, and address bar
 - **Configurable Settings** — DNS provider, search engine, ad blocking, JavaScript, and privacy options via a built-in settings dialog
 - **Download Manager** — Built-in download handling with progress tracking, configurable download directory, and toolbar indicator
+- **Favorites** — Full-featured bookmarks system with groups, pinning, drag-and-drop reordering, search, and persistent storage; star button in toolbar, Ctrl+D to toggle, Ctrl+B for panel
 - **Live Log Viewer** — Built-in log panel with syntax-highlighted output, dockable as a vertical or horizontal pane via the View menu
 
 ## Install

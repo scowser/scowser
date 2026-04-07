@@ -2,6 +2,7 @@
 #include "ui/TabWidget.h"
 #include "ui/AddressBar.h"
 #include "ui/LogPanel.h"
+#include "ui/FavoritesPanel.h"
 
 #include <QToolBar>
 #include <QAction>
@@ -9,17 +10,22 @@
 #include <QKeySequence>
 #include <QWebEngineView>
 #include <QWebEnginePage>
-#include <QStatusBar>
 #include <QIcon>
 #include <QSize>
 #include <QToolButton>
 #include <QMenuBar>
+#include <QLabel>
+#include <QTimer>
+#include <QBuffer>
+#include <QFile>
+#include <QPixmap>
 #include "ui/AboutDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/DownloadsDialog.h"
 #include "app/Application.h"
 #include "app/Settings.h"
 #include "app/DownloadManager.h"
+#include "app/FavoritesManager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,7 +61,21 @@ void MainWindow::setupUI()
     m_logPanel = new LogPanel(this);
     m_logPanel->hide();
 
-    statusBar()->showMessage("Ready");
+    m_favoritesPanel = new FavoritesPanel(Application::instance()->favoritesManager(), this);
+    m_favoritesPanel->hide();
+    connect(m_favoritesPanel, &FavoritesPanel::favoriteActivated,
+            this, &MainWindow::onFavoriteActivated);
+
+    // Floating status overlay (like Firefox) — no permanent status bar
+    setStatusBar(nullptr);
+    m_statusOverlay = new QLabel(this);
+    m_statusOverlay->setObjectName("statusOverlay");
+    m_statusOverlay->hide();
+    m_statusOverlay->setWordWrap(false);
+
+    m_statusTimer = new QTimer(this);
+    m_statusTimer->setSingleShot(true);
+    connect(m_statusTimer, &QTimer::timeout, this, &MainWindow::hideStatusOverlay);
 }
 
 void MainWindow::setupMenuBar()
@@ -72,6 +92,14 @@ void MainWindow::setupMenuBar()
 
     // View menu
     auto *viewMenu = menuBar()->addMenu("View");
+
+    auto *toggleFavoritesAction = new QAction("Show Favorites", this);
+    toggleFavoritesAction->setCheckable(true);
+    toggleFavoritesAction->setChecked(false);
+    connect(toggleFavoritesAction, &QAction::triggered, this, &MainWindow::toggleFavoritesPanel);
+    connect(m_favoritesPanel, &QDockWidget::visibilityChanged, toggleFavoritesAction, &QAction::setChecked);
+    viewMenu->addAction(toggleFavoritesAction);
+
     auto *toggleLogAction = new QAction("Show Logs", this);
     toggleLogAction->setCheckable(true);
     toggleLogAction->setChecked(false);
@@ -140,7 +168,15 @@ void MainWindow::setupToolBar()
     m_navToolBar->addWidget(m_addressBar);
     connect(m_addressBar, &AddressBar::urlEntered, this, &MainWindow::onNavigate);
 
-    // Download button (right of address bar)
+    // Star button (right of address bar, before downloads)
+    m_starButton = new QToolButton(this);
+    m_starButton->setIcon(QIcon(":/icons/star.svg"));
+    m_starButton->setToolTip("Add to favorites");
+    m_starButton->setObjectName("starButton");
+    connect(m_starButton, &QToolButton::clicked, this, &MainWindow::toggleFavoriteForCurrentPage);
+    m_navToolBar->addWidget(m_starButton);
+
+    // Download button (right of star)
     m_downloadButton = new QToolButton(this);
     m_downloadButton->setIcon(QIcon(":/icons/download.svg"));
     m_downloadButton->setToolTip("Downloads");
@@ -151,6 +187,10 @@ void MainWindow::setupToolBar()
     // Update button when active download count changes
     auto *mgr = Application::instance()->downloadManager();
     connect(mgr, &DownloadManager::activeCountChanged, this, &MainWindow::onActiveDownloadsChanged);
+
+    // Update star when favorites change
+    auto *favMgr = Application::instance()->favoritesManager();
+    connect(favMgr, &FavoritesManager::dataChanged, this, &MainWindow::updateStarButton);
 }
 
 void MainWindow::setupShortcuts()
@@ -174,6 +214,14 @@ void MainWindow::setupShortcuts()
         if (auto *view = m_tabWidget->currentWebView())
             view->reload();
     });
+
+    // Ctrl+D to toggle favorite for current page
+    auto *favShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_D), this);
+    connect(favShortcut, &QShortcut::activated, this, &MainWindow::toggleFavoriteForCurrentPage);
+
+    // Ctrl+B to toggle favorites panel
+    auto *favPanelShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_B), this);
+    connect(favPanelShortcut, &QShortcut::activated, this, &MainWindow::toggleFavoritesPanel);
 }
 
 void MainWindow::connectTab(QWebEngineView *view)
@@ -181,6 +229,8 @@ void MainWindow::connectTab(QWebEngineView *view)
     connect(view, &QWebEngineView::titleChanged, this, &MainWindow::onTabTitleChanged);
     connect(view, &QWebEngineView::urlChanged, this, &MainWindow::onTabUrlChanged);
     connect(view, &QWebEngineView::loadProgress, this, &MainWindow::onLoadProgress);
+    connect(view, &QWebEngineView::iconChanged, this, &MainWindow::onTabIconChanged);
+    connect(view->page(), &QWebEnginePage::linkHovered, this, &MainWindow::onLinkHovered);
 }
 
 void MainWindow::onNavigate(const QUrl &url)
@@ -195,6 +245,7 @@ void MainWindow::onCurrentTabChanged(int index)
     if (auto *view = m_tabWidget->webView(index)) {
         m_addressBar->setUrl(view->url());
         setWindowTitle(view->title().isEmpty() ? "scowser" : view->title() + " — scowser");
+        updateStarButton();
     }
 }
 
@@ -213,20 +264,52 @@ void MainWindow::onTabTitleChanged(const QString &title)
     }
 }
 
+void MainWindow::onTabIconChanged(const QIcon &icon)
+{
+    auto *view = qobject_cast<QWebEngineView *>(sender());
+    if (!view) return;
+
+    int index = m_tabWidget->indexOf(view);
+    if (index >= 0) {
+        m_tabWidget->setTabIcon(index, icon);
+    }
+
+    // Update favicon data on matching favorite
+    QUrl pageUrl = view->url();
+    if (!icon.isNull() && !pageUrl.isEmpty() && pageUrl.scheme() != "about") {
+        auto *favMgr = Application::instance()->favoritesManager();
+        QString urlStr = pageUrl.toDisplayString();
+        if (favMgr->isFavorited(urlStr)) {
+            QPixmap px = icon.pixmap(16, 16);
+            QByteArray data;
+            QBuffer buf(&data);
+            buf.open(QIODevice::WriteOnly);
+            px.save(&buf, "PNG");
+            favMgr->setFaviconPng(favMgr->favoriteIdForUrl(urlStr), data);
+        }
+    }
+}
+
 void MainWindow::onTabUrlChanged(const QUrl &url)
 {
     auto *view = qobject_cast<QWebEngineView *>(sender());
     if (view && view == m_tabWidget->currentWebView()) {
         m_addressBar->setUrl(url);
+        updateStarButton();
     }
 }
 
 void MainWindow::onLoadProgress(int progress)
 {
+    auto *view = qobject_cast<QWebEngineView *>(sender());
+    if (view && view != m_tabWidget->currentWebView())
+        return;
+
     if (progress < 100) {
-        statusBar()->showMessage(QString("Loading... %1%").arg(progress));
+        showStatusOverlay(QString("Loading... %1%").arg(progress));
     } else {
-        statusBar()->showMessage("Ready");
+        // Brief flash then hide
+        m_statusTimer->start(800);
     }
 }
 
@@ -234,21 +317,206 @@ void MainWindow::onNewTab()
 {
     auto *view = m_tabWidget->createTab();
     connectTab(view);
-    view->load(QUrl("about:blank"));
+    loadNewTabPage(view);
 }
 
 void MainWindow::onCloseTab(int index)
 {
     if (m_tabWidget->count() <= 1) {
         if (auto *view = m_tabWidget->webView(0)) {
-            view->load(QUrl("about:blank"));
+            loadNewTabPage(view);
         }
         return;
     }
     m_tabWidget->closeTab(index);
 }
 
+void MainWindow::loadNewTabPage(QWebEngineView *view)
+{
+    // If a custom homepage is set, navigate there instead
+    QString homepage = Application::instance()->settings()->homepage();
+    if (!homepage.isEmpty()) {
+        if (!homepage.startsWith("http://") && !homepage.startsWith("https://"))
+            homepage = "https://" + homepage;
+        view->load(QUrl::fromUserInput(homepage));
+        return;
+    }
+
+    // Load logo from resources and encode as data URI
+    static QString cachedHtml;
+    if (cachedHtml.isEmpty()) {
+        QFile logoFile(":/icons/scowser.png");
+        QString logoDataUri;
+        if (logoFile.open(QIODevice::ReadOnly)) {
+            logoDataUri = "data:image/png;base64," + QString::fromLatin1(logoFile.readAll().toBase64());
+        }
+
+        cachedHtml = QStringLiteral(R"(
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { height: 100%%; }
+  body {
+    min-height: 100vh;
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .container {
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .icon { margin-bottom: 16px; }
+  .icon img { width: 128px; height: 128px; }
+  .logo {
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #cdd6f4;
+    margin-bottom: 8px;
+  }
+  .tagline {
+    font-size: 14px;
+    color: #6c7086;
+    font-weight: 400;
+  }
+  .shortcuts {
+    margin-top: 24px;
+    font-size: 11px;
+    color: #585b70;
+  }
+  kbd {
+    background: #313244;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    color: #a6adc8;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon"><img src="%1" alt="scowser"></div>
+    <div class="logo">scowser</div>
+    <div class="tagline">private by default</div>
+    <div class="shortcuts">
+      <kbd>Ctrl+L</kbd> address bar &nbsp;&middot;&nbsp;
+      <kbd>Ctrl+T</kbd> new tab &nbsp;&middot;&nbsp;
+      <kbd>Ctrl+B</kbd> favorites
+    </div>
+  </div>
+</body>
+</html>
+)").arg(logoDataUri);
+    }
+    view->setHtml(cachedHtml, QUrl("about:blank"));
+}
+
 void MainWindow::toggleLogPanel()
 {
     m_logPanel->setVisible(!m_logPanel->isVisible());
+}
+
+void MainWindow::toggleFavoritesPanel()
+{
+    m_favoritesPanel->setVisible(!m_favoritesPanel->isVisible());
+}
+
+void MainWindow::toggleFavoriteForCurrentPage()
+{
+    auto *view = m_tabWidget->currentWebView();
+    if (!view) return;
+
+    QUrl url = view->url();
+    if (url.isEmpty() || url.scheme() == "about")
+        return;
+
+    auto *favMgr = Application::instance()->favoritesManager();
+    QString urlStr = url.toDisplayString();
+
+    if (favMgr->isFavorited(urlStr)) {
+        QString id = favMgr->favoriteIdForUrl(urlStr);
+        favMgr->removeFavorite(id);
+    } else {
+        QString id = favMgr->addFavorite(urlStr, view->title());
+        QIcon icon = view->icon();
+        if (!icon.isNull()) {
+            QPixmap px = icon.pixmap(16, 16);
+            QByteArray data;
+            QBuffer buf(&data);
+            buf.open(QIODevice::WriteOnly);
+            px.save(&buf, "PNG");
+            favMgr->setFaviconPng(id, data);
+        }
+    }
+}
+
+void MainWindow::updateStarButton()
+{
+    auto *view = m_tabWidget->currentWebView();
+    if (!view) return;
+
+    QUrl url = view->url();
+    auto *favMgr = Application::instance()->favoritesManager();
+
+    bool isFav = !url.isEmpty() && url.scheme() != "about" &&
+                 favMgr->isFavorited(url.toDisplayString());
+
+    if (isFav) {
+        m_starButton->setIcon(QIcon(":/icons/star-filled.svg"));
+        m_starButton->setToolTip("Remove from favorites");
+    } else {
+        m_starButton->setIcon(QIcon(":/icons/star.svg"));
+        m_starButton->setToolTip("Add to favorites");
+    }
+}
+
+void MainWindow::onFavoriteActivated(const QString &url)
+{
+    if (auto *view = m_tabWidget->currentWebView()) {
+        view->load(QUrl(url));
+    }
+}
+
+void MainWindow::onLinkHovered(const QString &url)
+{
+    if (url.isEmpty()) {
+        hideStatusOverlay();
+    } else {
+        showStatusOverlay(url);
+    }
+}
+
+void MainWindow::showStatusOverlay(const QString &text)
+{
+    m_statusTimer->stop();
+    m_statusOverlay->setText(text);
+    m_statusOverlay->adjustSize();
+
+    // Cap width to 60% of window width
+    int maxWidth = static_cast<int>(width() * 0.6);
+    if (m_statusOverlay->width() > maxWidth)
+        m_statusOverlay->setFixedWidth(maxWidth);
+    else
+        m_statusOverlay->setMaximumWidth(maxWidth);
+
+    // Position at bottom-left, above the window edge
+    m_statusOverlay->move(0, height() - m_statusOverlay->height());
+    m_statusOverlay->show();
+    m_statusOverlay->raise();
+}
+
+void MainWindow::hideStatusOverlay()
+{
+    m_statusOverlay->hide();
 }
