@@ -130,3 +130,25 @@ target_include_directories(test_favoritespanel PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_favoritespanel PRIVATE Qt6::Test Qt6::Widgets)
 add_test(NAME FavoritesPanel COMMAND test_favoritespanel)
 set_tests_properties(FavoritesPanel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Session manager tests
+add_executable(test_sessionmanager
+    test_sessionmanager.cpp
+    ${CMAKE_SOURCE_DIR}/src/security/SessionManager.cpp
+)
+target_include_directories(test_sessionmanager PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_sessionmanager PRIVATE Qt6::Test Qt6::Core Qt6::WebEngineWidgets)
+add_test(NAME SessionManager COMMAND test_sessionmanager)
+set_tests_properties(SessionManager PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Tab widget tests
+add_executable(test_tabwidget
+    test_tabwidget.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/TabWidget.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/ScrollableTabBar.cpp
+    ${CMAKE_SOURCE_DIR}/resources/resources.qrc
+)
+target_include_directories(test_tabwidget PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_tabwidget PRIVATE Qt6::Test Qt6::Widgets Qt6::WebEngineWidgets)
+add_test(NAME TabWidget COMMAND test_tabwidget)
+set_tests_properties(TabWidget PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

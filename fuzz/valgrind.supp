@@ -132,3 +132,31 @@
    ...
    fun:g_type_register_static
 }
+
+{
+   qt_textblock_text_invalid_read
+   Memcheck:Addr16
+   ...
+   fun:*QTextBlock*text*
+}
+
+{
+   qt_textblock_text_uninit_cond
+   Memcheck:Cond
+   ...
+   fun:*QTextBlock*text*
+}
+
+{
+   qt_textdocument_contents_change_cond
+   Memcheck:Cond
+   ...
+   fun:*QTextDocument*contentsChange*
+}
+
+{
+   qt_syntaxhighlighter_cond
+   Memcheck:Cond
+   ...
+   fun:*QSyntaxHighlighter*
+}

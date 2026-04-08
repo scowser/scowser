@@ -15,7 +15,7 @@ A security-focused web browser built in C++ with Qt6 WebEngine.
 - **Strict TLS** — Certificate pinning, TLS 1.2+ only, certificate transparency checks
 - **Security Indicator** — Lock icon in the address bar shows connection security at a glance
 - **CSP Enforcement** — Content Security Policy headers injected and enforced
-- **Ephemeral by Default** — All browsing data wiped on exit; no persistent cookies, cache, or history
+- **Ephemeral by Default** — All browsing data wiped on exit; no persistent cookies, cache, or history. Right-click any tab to save its session and persist cookies, cache, and local storage across restarts
 - **Dark Theme** — Custom dark UI with SVG icons, styled tabs, toolbar, and address bar
 - **Configurable Settings** — DNS provider, search engine, ad blocking, JavaScript, and privacy options via a built-in settings dialog
 - **Download Manager** — Built-in download handling with progress tracking, configurable download directory, and toolbar indicator

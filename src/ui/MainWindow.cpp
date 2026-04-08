@@ -10,6 +10,7 @@
 #include <QKeySequence>
 #include <QWebEngineView>
 #include <QWebEnginePage>
+#include <QWebEngineProfile>
 #include <QIcon>
 #include <QSize>
 #include <QToolButton>
@@ -19,6 +20,7 @@
 #include <QBuffer>
 #include <QFile>
 #include <QPixmap>
+#include <QMessageBox>
 #include "ui/AboutDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/DownloadsDialog.h"
@@ -26,6 +28,7 @@
 #include "app/Settings.h"
 #include "app/DownloadManager.h"
 #include "app/FavoritesManager.h"
+#include "security/SessionManager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -41,7 +44,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(settings, &Settings::searchEngineUrlChanged,
             m_addressBar, &AddressBar::setSearchEngineUrl);
 
-    onNewTab();
+    restoreSavedSessions();
+
+    // If no saved sessions were restored, open a new tab
+    if (m_tabWidget->count() == 0)
+        onNewTab();
 
     resize(1280, 800);
     setWindowTitle("scowser");
@@ -57,6 +64,8 @@ void MainWindow::setupUI()
     connect(m_tabWidget, &TabWidget::currentChanged, this, &MainWindow::onCurrentTabChanged);
     connect(m_tabWidget, &TabWidget::tabCloseRequested, this, &MainWindow::onCloseTab);
     connect(m_tabWidget, &TabWidget::newTabRequested, this, &MainWindow::onNewTab);
+    connect(m_tabWidget, &TabWidget::saveSessionRequested, this, &MainWindow::onSaveSessionRequested);
+    connect(m_tabWidget, &TabWidget::unsaveSessionRequested, this, &MainWindow::onUnsaveSessionRequested);
 
     m_logPanel = new LogPanel(this);
     m_logPanel->hide();
@@ -262,6 +271,14 @@ void MainWindow::onTabTitleChanged(const QString &title)
     if (m_tabWidget->currentWebView() == view) {
         setWindowTitle(title.isEmpty() ? "scowser" : title + " — scowser");
     }
+
+    // Update saved session title if this tab is saved
+    auto *sm = Application::instance()->sessionManager();
+    QString urlStr = view->url().toDisplayString();
+    if (sm->isTabSaved(urlStr) && !title.isEmpty()) {
+        sm->unsaveTab(urlStr);
+        sm->saveTab(urlStr, title);
+    }
 }
 
 void MainWindow::onTabIconChanged(const QIcon &icon)
@@ -329,6 +346,102 @@ void MainWindow::onCloseTab(int index)
         return;
     }
     m_tabWidget->closeTab(index);
+}
+
+void MainWindow::onSaveSessionRequested(int index)
+{
+    auto *view = m_tabWidget->webView(index);
+    if (!view) return;
+
+    QUrl url = view->url();
+    if (url.isEmpty() || url.scheme() == "about") return;
+
+    // Confirmation dialog
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Save Session");
+    msgBox.setText("Save this tab's session?");
+    msgBox.setInformativeText(
+        "This will enable cookies, cache, and local storage for this tab. "
+        "Your browsing data will persist between sessions.\n\n"
+        "The tab will reload with a persistent profile.");
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+
+    if (msgBox.exec() != QMessageBox::Ok)
+        return;
+
+    // Save to session manager
+    auto *sm = Application::instance()->sessionManager();
+    QString urlStr = url.toDisplayString();
+    sm->saveTab(urlStr, view->title());
+
+    // Switch this tab to the persistent profile by creating a new page
+    auto *persistentProfile = sm->persistentProfile();
+    auto *newPage = new QWebEnginePage(persistentProfile, view);
+    newPage->setBackgroundColor(QColor("#1e1e2e"));
+
+    view->setPage(newPage);
+    view->load(url);
+
+    qDebug() << "MainWindow: Tab switched to persistent profile:" << urlStr;
+}
+
+void MainWindow::onUnsaveSessionRequested(int index)
+{
+    auto *view = m_tabWidget->webView(index);
+    if (!view) return;
+
+    QUrl url = view->url();
+    if (url.isEmpty()) return;
+
+    // Remove from saved sessions
+    auto *sm = Application::instance()->sessionManager();
+    sm->unsaveTab(url.toDisplayString());
+
+    // Switch back to ephemeral (default) profile
+    auto *defaultProfile = QWebEngineProfile::defaultProfile();
+    auto *newPage = new QWebEnginePage(defaultProfile, view);
+    newPage->setBackgroundColor(QColor("#1e1e2e"));
+
+    view->setPage(newPage);
+    view->load(url);
+
+    qDebug() << "MainWindow: Tab switched back to ephemeral profile:" << url.toDisplayString();
+}
+
+void MainWindow::restoreSavedSessions()
+{
+    auto *sm = Application::instance()->sessionManager();
+    const auto savedTabs = sm->savedTabs();
+
+    for (const auto &tab : savedTabs) {
+        createPersistentTab(tab.url, tab.title);
+    }
+
+    if (!savedTabs.isEmpty()) {
+        m_tabWidget->setCurrentIndex(0);
+    }
+}
+
+QWebEngineView *MainWindow::createPersistentTab(const QString &url, const QString &title)
+{
+    auto *sm = Application::instance()->sessionManager();
+    auto *persistentProfile = sm->persistentProfile();
+
+    auto *page = new QWebEnginePage(persistentProfile, m_tabWidget);
+    page->setBackgroundColor(QColor("#1e1e2e"));
+
+    auto *view = new QWebEngineView(m_tabWidget);
+    view->setPage(page);
+
+    int index = m_tabWidget->addTab(view, title.isEmpty() ? "New Tab" : title);
+    m_tabWidget->setCurrentIndex(index);
+
+    connectTab(view);
+    view->load(QUrl(url));
+
+    return view;
 }
 
 void MainWindow::loadNewTabPage(QWebEngineView *view)

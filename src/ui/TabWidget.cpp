@@ -9,6 +9,7 @@
 #include <QIcon>
 #include <QTabBar>
 #include <QResizeEvent>
+#include <QMenu>
 
 TabWidget::TabWidget(QWidget *parent)
     : QTabWidget(parent)
@@ -27,6 +28,11 @@ TabWidget::TabWidget(QWidget *parent)
     m_newTabButton->setAutoRaise(true);
     m_newTabButton->setFixedSize(28, 28);
     connect(m_newTabButton, &QToolButton::clicked, this, &TabWidget::newTabRequested);
+
+    // Tab bar context menu
+    tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(tabBar(), &QTabBar::customContextMenuRequested,
+            this, &TabWidget::showTabContextMenu);
 
     QMetaObject::invokeMethod(this, &TabWidget::repositionNewTabButton, Qt::QueuedConnection);
 }
@@ -80,4 +86,35 @@ void TabWidget::repositionNewTabButton()
     int y = bar->y() + (bar->height() - m_newTabButton->height()) / 2;
     m_newTabButton->move(x, y);
     m_newTabButton->raise();
+}
+
+void TabWidget::showTabContextMenu(const QPoint &pos)
+{
+    int index = tabBar()->tabAt(pos);
+    if (index < 0) return;
+
+    auto *view = webView(index);
+    if (!view) return;
+
+    QUrl url = view->url();
+    if (url.isEmpty() || url.scheme() == "about") return;
+
+    QMenu menu(this);
+
+    // Check if this tab is using a persistent profile
+    bool isPersistent = view->page()->profile() != QWebEngineProfile::defaultProfile();
+
+    if (isPersistent) {
+        auto *unsaveAction = menu.addAction("Remove from Saved Session");
+        connect(unsaveAction, &QAction::triggered, this, [this, index]() {
+            emit unsaveSessionRequested(index);
+        });
+    } else {
+        auto *saveAction = menu.addAction("Save Session");
+        connect(saveAction, &QAction::triggered, this, [this, index]() {
+            emit saveSessionRequested(index);
+        });
+    }
+
+    menu.exec(tabBar()->mapToGlobal(pos));
 }

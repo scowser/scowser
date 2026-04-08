@@ -18,11 +18,14 @@ public:
 
 signals:
     void newTabRequested();
+    void saveSessionRequested(int index);
+    void unsaveSessionRequested(int index);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
     void repositionNewTabButton();
+    void showTabContextMenu(const QPoint &pos);
     QToolButton *m_newTabButton;
 };

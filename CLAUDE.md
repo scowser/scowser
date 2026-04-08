@@ -141,12 +141,17 @@ resources/
    - Firefox-style floating status overlay (bottom-left, appears on link hover / page load)
    - Site favicons displayed on tab labels and in the favorites panel
 
-9. **Ephemeral Sessions**
+9. **Ephemeral Sessions with Per-Tab Session Saving**
 
    - All browsing data cleared on exit by default
    - Off-the-record QWebEngineProfile (no disk persistence)
    - No cookies, cache, or history survive a session
-   - Optional "remember this session" for user convenience
+   - Per-tab "Save Session" via right-click context menu on any tab
+   - Confirmation dialog warns the user that cookies, cache, and local storage will persist
+   - Saved tabs switch to a named persistent `QWebEngineProfile("scowser-persistent")` with disk cache and cookies
+   - Saved sessions persisted to `~/.config/scowser/sessions.json`
+   - Saved tabs automatically restored on next launch
+   - "Remove from Saved Session" context menu option to revert a tab to ephemeral
 
 10. **Settings Framework**
 
