@@ -160,3 +160,111 @@
    ...
    fun:*QSyntaxHighlighter*
 }
+
+# ---- Qt WebEngine / Chromium internal false positives ----
+# Chromium's multi-threaded architecture (Chrome_IOThread, ThreadPoolService,
+# renderer processes) produces many Valgrind false positives: invalid reads
+# from SIMD-optimized string ops, conditional jumps on padding bytes, and
+# global singletons that intentionally outlive the process (fontconfig,
+# udev, ProfileAdapter). None of these are scowser code.
+
+{
+   webengine_cond
+   Memcheck:Cond
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_addr1
+   Memcheck:Addr1
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_addr2
+   Memcheck:Addr2
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_addr4
+   Memcheck:Addr4
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_addr8
+   Memcheck:Addr8
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_addr16
+   Memcheck:Addr16
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_value4
+   Memcheck:Value4
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_value8
+   Memcheck:Value8
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_param
+   Memcheck:Param
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+{
+   webengine_leak
+   Memcheck:Leak
+   ...
+   obj:*/libQt6WebEngineCore.so*
+}
+
+# fontconfig init triggered by Chromium
+{
+   fontconfig_leak
+   Memcheck:Leak
+   ...
+   obj:*/libfontconfig.so*
+}
+
+{
+   fontconfig_cond
+   Memcheck:Cond
+   ...
+   obj:*/libfontconfig.so*
+}
+
+# expat (used by fontconfig)
+{
+   expat_leak
+   Memcheck:Leak
+   ...
+   obj:*/libexpat.so*
+}
+
+# udev device monitoring started by Chromium
+{
+   udev_leak
+   Memcheck:Leak
+   ...
+   obj:*/libudev.so*
+}
