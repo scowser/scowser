@@ -42,6 +42,8 @@ void TestSessionManager::initTestCase()
 
 void TestSessionManager::cleanupTestCase()
 {
+    delete m_tempDir;
+    m_tempDir = nullptr;
 }
 
 void TestSessionManager::init()
