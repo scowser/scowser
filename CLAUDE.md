@@ -6,6 +6,7 @@
 - Always check to make sure website is relevant and accurate to current features.
 - Always check to make sure README is updated.
 - Always check to make sure CLAUDE.md is updated.
+- Run unit tests and sanitizer tests locally.
 
 ## Project Overview
 
