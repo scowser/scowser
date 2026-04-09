@@ -225,13 +225,6 @@
 }
 
 {
-   webengine_param
-   Memcheck:Param
-   ...
-   obj:*/libQt6WebEngineCore.so*
-}
-
-{
    webengine_leak
    Memcheck:Leak
    ...
