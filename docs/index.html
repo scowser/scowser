@@ -330,9 +330,9 @@
         <h3><span class="platform-icon">&#63743;</span> macOS &mdash; Direct Download</h3>
         <p>Download a DMG for your Mac. Signed and notarized by Apple.</p>
         <div class="download-links">
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.29/scowser-0.0.29-macos-26.dmg">&#8615; macOS 26 (Tahoe)</a>
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.29/scowser-0.0.29-macos-15.dmg">&#8615; macOS 15 (Sequoia)</a>
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.29/scowser-0.0.29-macos-14.dmg">&#8615; macOS 14 (Sonoma)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.30/scowser-0.0.30-macos-26.dmg">&#8615; macOS 26 (Tahoe)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.30/scowser-0.0.30-macos-15.dmg">&#8615; macOS 15 (Sequoia)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.30/scowser-0.0.30-macos-14.dmg">&#8615; macOS 14 (Sonoma)</a>
         </div>
         <p style="margin-top: 0.75rem; font-size: 0.8rem;">Or browse <a href="https://github.com/scowser/scowser/releases/latest" style="color: var(--green);">all releases</a></p>
       </div>
@@ -350,8 +350,8 @@
         <h3><span class="platform-icon">&#128039;</span> Linux &mdash; Direct Download</h3>
         <p>Grab an AppImage (just run it) or a tar.gz if you prefer manual installs.</p>
         <div class="download-links">
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.29/scowser-0.0.29-linux-x86_64.AppImage">&#8615; AppImage (x86_64)</a>
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.29/scowser-0.0.29-linux-x86_64.tar.gz">&#8615; tar.gz (x86_64)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.30/scowser-0.0.30-linux-x86_64.AppImage">&#8615; AppImage (x86_64)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.30/scowser-0.0.30-linux-x86_64.tar.gz">&#8615; tar.gz (x86_64)</a>
         </div>
         <p style="margin-top: 0.75rem; font-size: 0.8rem;">AppImage: <code style="display:inline; padding: 0.15rem 0.4rem; margin: 0;">chmod +x scowser*.AppImage && ./scowser*.AppImage</code></p>
       </div>
@@ -420,8 +420,8 @@
       <div class="feature-card">
         <span class="feature-icon">&#128065;</span>
         <h3>Ephemeral Sessions</h3>
-        <p class="simple">When you close scowser, it's like you were never there. Cookies, browsing history, cached files &mdash; all gone. Every launch is a clean slate. You can optionally save a session if you want to pick up where you left off.</p>
-        <p class="technical">Uses an off-the-record QWebEngineProfile with zero disk persistence by default. No cookies, cache, or history survive a session. Optional session persistence is explicitly opt-in per session.</p>
+        <p class="simple">When you close scowser, it's like you were never there. Cookies, browsing history, cached files &mdash; all gone. Every launch is a clean slate. Right-click any tab and choose "Save Session" to persist cookies, cache, and local storage for that tab across restarts.</p>
+        <p class="technical">Uses an off-the-record QWebEngineProfile with zero disk persistence by default. No cookies, cache, or history survive a session. Per-tab session persistence is opt-in via tab context menu &mdash; saved tabs switch to a named persistent QWebEngineProfile and are restored on next launch from <code>~/.config/scowser/sessions.json</code>.</p>
       </div>
 
       <div class="feature-card">

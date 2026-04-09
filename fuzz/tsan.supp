@@ -9,3 +9,8 @@ race:libproxy
 race:libpxbackend
 race:g_malloc
 race:g_rec_mutex_lock
+
+# Chromium internal thread races in Qt WebEngine
+# Race between Chrome_IOThread and ThreadPoolService on pthread_mutex init/trylock
+# inside libQt6WebEngineCore — triggered by QWebEngineProfile construction.
+race:libQt6WebEngineCore

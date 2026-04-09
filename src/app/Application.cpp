@@ -23,7 +23,7 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
 {
     setApplicationName("scowser");
-    setApplicationVersion("0.0.29");
+    setApplicationVersion("0.0.30");
     setOrganizationName("scowser");
     setWindowIcon(QIcon(":/icons/scowser.png"));
 
@@ -104,6 +104,28 @@ void Application::configureWebEngine()
     // Connect download requests from the profile to the download manager
     connect(profile, &QWebEngineProfile::downloadRequested,
             m_downloadManager.get(), &DownloadManager::onDownloadRequested);
+
+    // Configure the persistent profile with the same security settings
+    auto *persistent = m_sessionManager->persistentProfile();
+    persistent->setUrlRequestInterceptor(m_requestInterceptor.get());
+
+    auto *pSettings = persistent->settings();
+    pSettings->setAttribute(QWebEngineSettings::AutoLoadImages, true);
+    pSettings->setAttribute(QWebEngineSettings::JavascriptEnabled, m_settings->javaScriptEnabled());
+    pSettings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, false);
+    pSettings->setAttribute(QWebEngineSettings::JavascriptCanAccessClipboard, false);
+    pSettings->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+    pSettings->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, false);
+    pSettings->setAttribute(QWebEngineSettings::LocalContentCanAccessFileUrls, false);
+    pSettings->setAttribute(QWebEngineSettings::HyperlinkAuditingEnabled, false);
+    pSettings->setAttribute(QWebEngineSettings::WebGLEnabled, false);
+    pSettings->setAttribute(QWebEngineSettings::Accelerated2dCanvasEnabled, false);
+    pSettings->setAttribute(QWebEngineSettings::DnsPrefetchEnabled, false);
+
+    persistent->scripts()->insert(cspScript);
+
+    connect(persistent, &QWebEngineProfile::downloadRequested,
+            m_downloadManager.get(), &DownloadManager::onDownloadRequested);
 }
 
 void Application::loadStyleSheet()
@@ -170,8 +192,10 @@ void Application::connectSettings()
     connect(m_settings.get(), &Settings::downloadDirectoryChanged,
             m_downloadManager.get(), &DownloadManager::setDownloadDirectory);
 
-    connect(m_settings.get(), &Settings::javaScriptEnabledChanged, this, [](bool enabled) {
+    connect(m_settings.get(), &Settings::javaScriptEnabledChanged, this, [this](bool enabled) {
         auto *profile = QWebEngineProfile::defaultProfile();
         profile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, enabled);
+        m_sessionManager->persistentProfile()->settings()->setAttribute(
+            QWebEngineSettings::JavascriptEnabled, enabled);
     });
 }

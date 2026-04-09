@@ -8,3 +8,21 @@ leak:px_proxy_factory_new
 leak:px_manager_new_with_options
 leak:libpxbackend
 leak:libproxy
+
+# Qt WebEngine / Chromium internal singletons
+# These are global allocations inside Chromium's ProfileAdapter, browser context,
+# font config init, device monitoring, etc. They intentionally outlive the process.
+leak:libQt6WebEngineCore
+leak:QtWebEngineCore::ProfileAdapter
+leak:QWebEngineProfile
+
+# fontconfig init triggered by Chromium's font subsystem
+leak:libfontconfig
+leak:FcInit
+leak:libexpat
+
+# udev monitor created by Chromium's device change observer
+leak:libudev
+leak:udev_monitor_new_from_netlink
+leak:udev_monitor_filter_add_match_subsystem_devtype
+leak:udev_new

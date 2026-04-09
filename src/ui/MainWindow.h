@@ -29,6 +29,8 @@ private slots:
     void onLoadProgress(int progress);
     void onNewTab();
     void onCloseTab(int index);
+    void onSaveSessionRequested(int index);
+    void onUnsaveSessionRequested(int index);
 
 private:
     void setupUI();
@@ -49,6 +51,8 @@ private:
     void showStatusOverlay(const QString &text);
     void hideStatusOverlay();
     void loadNewTabPage(QWebEngineView *view);
+    void restoreSavedSessions();
+    QWebEngineView *createPersistentTab(const QString &url, const QString &title);
 
     TabWidget *m_tabWidget;
     AddressBar *m_addressBar;
