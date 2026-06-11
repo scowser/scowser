@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(scowser VERSION 0.0.31 LANGUAGES CXX)
+project(scowser VERSION 0.0.32 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,6 +35,7 @@ set(SOURCES
     src/ui/AboutDialog.cpp
     src/ui/LogPanel.cpp
     src/ui/FavoritesPanel.cpp
+    src/ui/DevToolsPanel.cpp
     src/security/AdBlocker.cpp
     src/security/DnsOverHttps.cpp
     src/security/CertificatePinner.cpp
@@ -59,6 +60,7 @@ set(HEADERS
     src/ui/AboutDialog.h
     src/ui/LogPanel.h
     src/ui/FavoritesPanel.h
+    src/ui/DevToolsPanel.h
     src/security/AdBlocker.h
     src/security/DnsOverHttps.h
     src/security/CertificatePinner.h

@@ -7,6 +7,7 @@ class TabWidget;
 class AddressBar;
 class LogPanel;
 class FavoritesPanel;
+class DevToolsPanel;
 class QToolBar;
 class QToolButton;
 class QWebEngineView;
@@ -44,6 +45,8 @@ private:
     void onActiveDownloadsChanged(int count);
     void toggleLogPanel();
     void toggleFavoritesPanel();
+    void toggleDevTools();
+    void attachDevToolsToCurrentTab();
     void toggleFavoriteForCurrentPage();
     void updateStarButton();
     void onFavoriteActivated(const QString &url);
@@ -61,6 +64,7 @@ private:
     QToolButton *m_starButton;
     LogPanel *m_logPanel;
     FavoritesPanel *m_favoritesPanel;
+    DevToolsPanel *m_devToolsPanel;
     QLabel *m_statusOverlay;
     QTimer *m_statusTimer;
 };

@@ -111,6 +111,16 @@ target_link_libraries(test_logpanel PRIVATE Qt6::Test Qt6::Widgets)
 add_test(NAME LogPanel COMMAND test_logpanel)
 set_tests_properties(LogPanel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+# DevTools panel tests
+add_executable(test_devtoolspanel
+    test_devtoolspanel.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/DevToolsPanel.cpp
+)
+target_include_directories(test_devtoolspanel PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(test_devtoolspanel PRIVATE Qt6::Test Qt6::Widgets Qt6::WebEngineWidgets)
+add_test(NAME DevToolsPanel COMMAND test_devtoolspanel)
+set_tests_properties(DevToolsPanel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 # Favorites manager tests
 add_executable(test_favoritesmanager
     test_favoritesmanager.cpp

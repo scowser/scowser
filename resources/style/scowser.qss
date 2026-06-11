@@ -477,6 +477,17 @@ QPlainTextEdit#logView {
     selection-color: #cdd6f4;
 }
 
+/* === DevTools Panel === */
+QDockWidget#devToolsPanel {
+    background-color: #1e1e2e;
+    border: none;
+}
+
+QWidget#devToolsPanelContainer {
+    background-color: #1e1e2e;
+    border: none;
+}
+
 /* === Star (Favorite) Button === */
 QToolButton#starButton {
     background: transparent;

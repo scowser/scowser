@@ -330,9 +330,9 @@
         <h3><span class="platform-icon">&#63743;</span> macOS &mdash; Direct Download</h3>
         <p>Download a DMG for your Mac. Signed and notarized by Apple.</p>
         <div class="download-links">
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.31/scowser-0.0.31-macos-26.dmg">&#8615; macOS 26 (Tahoe)</a>
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.31/scowser-0.0.31-macos-15.dmg">&#8615; macOS 15 (Sequoia)</a>
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.31/scowser-0.0.31-macos-14.dmg">&#8615; macOS 14 (Sonoma)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.32/scowser-0.0.32-macos-26.dmg">&#8615; macOS 26 (Tahoe)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.32/scowser-0.0.32-macos-15.dmg">&#8615; macOS 15 (Sequoia)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.32/scowser-0.0.32-macos-14.dmg">&#8615; macOS 14 (Sonoma)</a>
         </div>
         <p style="margin-top: 0.75rem; font-size: 0.8rem;">Or browse <a href="https://github.com/scowser/scowser/releases/latest" style="color: var(--green);">all releases</a></p>
       </div>
@@ -350,8 +350,8 @@
         <h3><span class="platform-icon">&#128039;</span> Linux &mdash; Direct Download</h3>
         <p>Grab an AppImage (just run it) or a tar.gz if you prefer manual installs.</p>
         <div class="download-links">
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.31/scowser-0.0.31-linux-x86_64.AppImage">&#8615; AppImage (x86_64)</a>
-          <a href="https://github.com/scowser/scowser/releases/download/v0.0.31/scowser-0.0.31-linux-x86_64.tar.gz">&#8615; tar.gz (x86_64)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.32/scowser-0.0.32-linux-x86_64.AppImage">&#8615; AppImage (x86_64)</a>
+          <a href="https://github.com/scowser/scowser/releases/download/v0.0.32/scowser-0.0.32-linux-x86_64.tar.gz">&#8615; tar.gz (x86_64)</a>
         </div>
         <p style="margin-top: 0.75rem; font-size: 0.8rem;">AppImage: <code style="display:inline; padding: 0.15rem 0.4rem; margin: 0;">chmod +x scowser*.AppImage && ./scowser*.AppImage</code></p>
       </div>
@@ -429,6 +429,13 @@
         <h3>Live Log Viewer</h3>
         <p class="simple">See exactly what scowser is doing under the hood. A built-in log panel shows every security decision in real time &mdash; blocked trackers, DNS queries, certificate checks &mdash; all syntax-highlighted and dockable wherever you want.</p>
         <p class="technical">QDockWidget with QSyntaxHighlighter for log-level coloring. Captures all Qt message handler output (qDebug, qWarning, qCritical). Dockable as a vertical (right) or horizontal (bottom) pane. Accessible via View &gt; Show Logs.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">&#128295;</span>
+        <h3>Built-in DevTools</h3>
+        <p class="simple">Peek under the hood of any page. The same developer tools you know from Chrome &mdash; inspect elements, watch network requests, debug JavaScript &mdash; live in a panel you can dock at the bottom or side of the window. Press F12 and go.</p>
+        <p class="technical">Full Chromium DevTools frontend via QWebEnginePage::setInspectedPage in a QDockWidget. Follows the active tab automatically, survives per-tab profile switches, and the inspector view is created lazily so no extra renderer process runs until first use. Toggle with F12 or Ctrl+Shift+I.</p>
       </div>
 
       <div class="feature-card">

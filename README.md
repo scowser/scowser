@@ -21,6 +21,7 @@ A security-focused web browser built in C++ with Qt6 WebEngine.
 - **Download Manager** — Built-in download handling with progress tracking, configurable download directory, and toolbar indicator
 - **Favorites** — Full-featured bookmarks system with groups, pinning, drag-and-drop reordering, search, and persistent storage; star button in toolbar, Ctrl+D to toggle, Ctrl+B for panel
 - **Live Log Viewer** — Built-in log panel with syntax-highlighted output, dockable as a vertical or horizontal pane via the View menu
+- **DevTools** — Full Chromium developer tools (elements, console, network, sources) in a dockable panel; F12 or Ctrl+Shift+I to toggle, follows the active tab
 
 ## Install
 
