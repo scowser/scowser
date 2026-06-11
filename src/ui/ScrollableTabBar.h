@@ -14,4 +14,6 @@ protected:
 
 private:
     void hideScrollButtons();
+
+    int m_scrollAccumulator = 0;
 };

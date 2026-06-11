@@ -4,7 +4,9 @@
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QTabBar>
+#include <QWheelEvent>
 #include "ui/TabWidget.h"
+#include "ui/ScrollableTabBar.h"
 
 class TestTabWidget : public QObject {
     Q_OBJECT
@@ -22,8 +24,14 @@ private slots:
     void testUnsaveSessionSignal();
     void testTabCount();
     void testContextMenuOnBlankTabNoSignal();
+    void testWheelFullNotchSwitchesOneTab();
+    void testWheelSmallDeltasAccumulate();
+    void testWheelDirectionChangeResetsAccumulation();
+    void testWheelClampsAtEdges();
 
 private:
+    void sendWheel(QWidget *target, int deltaY);
+
     QWidget *m_container = nullptr;
 };
 
@@ -126,6 +134,86 @@ void TestTabWidget::testContextMenuOnBlankTabNoSignal()
     QVERIFY(unsaveSpy.isValid());
     QCOMPARE(saveSpy.count(), 0);
     QCOMPARE(unsaveSpy.count(), 0);
+}
+
+void TestTabWidget::sendWheel(QWidget *target, int deltaY)
+{
+    QWheelEvent event(QPointF(10, 10), target->mapToGlobal(QPointF(10, 10)),
+                      QPoint(), QPoint(0, deltaY),
+                      Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+    QApplication::sendEvent(target, &event);
+}
+
+void TestTabWidget::testWheelFullNotchSwitchesOneTab()
+{
+    ScrollableTabBar bar;
+    bar.addTab("1");
+    bar.addTab("2");
+    bar.addTab("3");
+    bar.setCurrentIndex(0);
+
+    sendWheel(&bar, -120);
+    QCOMPARE(bar.currentIndex(), 1);
+
+    sendWheel(&bar, -120);
+    QCOMPARE(bar.currentIndex(), 2);
+
+    sendWheel(&bar, 120);
+    QCOMPARE(bar.currentIndex(), 1);
+}
+
+void TestTabWidget::testWheelSmallDeltasAccumulate()
+{
+    ScrollableTabBar bar;
+    bar.addTab("1");
+    bar.addTab("2");
+    bar.addTab("3");
+    bar.setCurrentIndex(0);
+
+    // Trackpad-style small deltas: no switch until a full notch accumulates
+    sendWheel(&bar, -40);
+    QCOMPARE(bar.currentIndex(), 0);
+    sendWheel(&bar, -40);
+    QCOMPARE(bar.currentIndex(), 0);
+    sendWheel(&bar, -40);
+    QCOMPARE(bar.currentIndex(), 1);
+
+    // Accumulator resets after a switch; next small delta doesn't switch
+    sendWheel(&bar, -40);
+    QCOMPARE(bar.currentIndex(), 1);
+}
+
+void TestTabWidget::testWheelDirectionChangeResetsAccumulation()
+{
+    ScrollableTabBar bar;
+    bar.addTab("1");
+    bar.addTab("2");
+    bar.addTab("3");
+    bar.setCurrentIndex(1);
+
+    sendWheel(&bar, -80);
+    QCOMPARE(bar.currentIndex(), 1);
+
+    // Reversing direction discards prior accumulation
+    sendWheel(&bar, 80);
+    QCOMPARE(bar.currentIndex(), 1);
+    sendWheel(&bar, 40);
+    QCOMPARE(bar.currentIndex(), 0);
+}
+
+void TestTabWidget::testWheelClampsAtEdges()
+{
+    ScrollableTabBar bar;
+    bar.addTab("1");
+    bar.addTab("2");
+    bar.setCurrentIndex(0);
+
+    sendWheel(&bar, 120);
+    QCOMPARE(bar.currentIndex(), 0);
+
+    bar.setCurrentIndex(1);
+    sendWheel(&bar, -120);
+    QCOMPARE(bar.currentIndex(), 1);
 }
 
 QTEST_MAIN(TestTabWidget)
