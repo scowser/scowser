@@ -53,7 +53,8 @@ src/
 │   ├── SettingsDialog.h/cpp   # Preferences dialog (General + Privacy + Security tabs)
 │   ├── DownloadsDialog.h/cpp  # Downloads list with progress and actions
 │   ├── LogPanel.h/cpp         # Live log viewer dock widget with syntax highlighting
-│   └── FavoritesPanel.h/cpp   # Favorites dock widget with tree view, search, drag-and-drop
+│   ├── FavoritesPanel.h/cpp   # Favorites dock widget with tree view, search, drag-and-drop
+│   └── DevToolsPanel.h/cpp    # Chromium DevTools dock widget (per-tab inspector)
 ├── security/
 │   ├── AdBlocker.h/cpp        # EasyList-based ad/tracker blocking
 │   ├── DnsOverHttps.h/cpp     # DoH resolver (Cloudflare/Quad9)
@@ -202,6 +203,18 @@ resources/
     - Auto-scrolls to latest messages when scrolled to bottom; preserves scroll position otherwise
     - Clear button to reset the log view; max 10,000 lines to bound memory usage
     - Catppuccin Mocha color scheme: blue for DEBUG, green for INFO, yellow for WARNING, red for CRITICAL/FATAL
+
+14. **DevTools**
+
+    - `DevToolsPanel` is a `QDockWidget` hosting the full Chromium DevTools frontend via `QWebEnginePage::setInspectedPage`
+    - Toggle via View > Show DevTools, F12, or Ctrl+Shift+I (Cmd+Shift+I on macOS)
+    - Follows the active tab automatically; re-attaches when a tab's page is swapped (save/unsave session profile switch)
+    - Inspector `QWebEngineView` is created lazily on first attach (no extra renderer process until used)
+    - DevTools page force-enables JavaScript and local storage per-page so the inspector works even when those are disabled globally
+    - Detaches cleanly when the inspected page is destroyed (tab closed)
+    - Default dock position: bottom; View > "Move DevTools to Right/Bottom" flips the dock side
+    - Auto-sizing (deferred one event-loop tick so the dock layout settles): bottom pane expands to ~40% of window height when collapsed (< 150px); right pane expands to 30% of window width whenever narrower than that; larger user-set sizes are always kept
+    - Chrome-less panel: no title bar or toolbar — the inspector view fills the entire pane; close via the same toggles that open it
 
 ## Code Conventions
 

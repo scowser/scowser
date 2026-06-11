@@ -3,6 +3,7 @@
 #include "ui/AddressBar.h"
 #include "ui/LogPanel.h"
 #include "ui/FavoritesPanel.h"
+#include "ui/DevToolsPanel.h"
 
 #include <QToolBar>
 #include <QAction>
@@ -75,6 +76,9 @@ void MainWindow::setupUI()
     connect(m_favoritesPanel, &FavoritesPanel::favoriteActivated,
             this, &MainWindow::onFavoriteActivated);
 
+    m_devToolsPanel = new DevToolsPanel(this);
+    m_devToolsPanel->hide();
+
     // Floating status overlay (like Firefox) — no permanent status bar
     setStatusBar(nullptr);
     m_statusOverlay = new QLabel(this);
@@ -115,6 +119,22 @@ void MainWindow::setupMenuBar()
     connect(toggleLogAction, &QAction::triggered, this, &MainWindow::toggleLogPanel);
     connect(m_logPanel, &QDockWidget::visibilityChanged, toggleLogAction, &QAction::setChecked);
     viewMenu->addAction(toggleLogAction);
+
+    auto *toggleDevToolsAction = new QAction("Show DevTools", this);
+    toggleDevToolsAction->setCheckable(true);
+    toggleDevToolsAction->setChecked(false);
+    toggleDevToolsAction->setShortcut(QKeySequence(Qt::Key_F12));
+    connect(toggleDevToolsAction, &QAction::triggered, this, &MainWindow::toggleDevTools);
+    connect(m_devToolsPanel, &QDockWidget::visibilityChanged, toggleDevToolsAction, &QAction::setChecked);
+    viewMenu->addAction(toggleDevToolsAction);
+
+    auto *devToolsDockAction = new QAction("Move DevTools to Right", this);
+    connect(devToolsDockAction, &QAction::triggered, this, [this, devToolsDockAction]() {
+        m_devToolsPanel->toggleDockOrientation();
+        devToolsDockAction->setText(m_devToolsPanel->isDockedBottom()
+            ? "Move DevTools to Right" : "Move DevTools to Bottom");
+    });
+    viewMenu->addAction(devToolsDockAction);
 
     auto *helpMenu = menuBar()->addMenu("Help");
     helpMenu->addAction(aboutAction);
@@ -231,6 +251,10 @@ void MainWindow::setupShortcuts()
     // Ctrl+B to toggle favorites panel
     auto *favPanelShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_B), this);
     connect(favPanelShortcut, &QShortcut::activated, this, &MainWindow::toggleFavoritesPanel);
+
+    // Ctrl+Shift+I (Cmd+Shift+I on macOS) to toggle DevTools; F12 lives on the menu action
+    auto *devToolsShortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_I), this);
+    connect(devToolsShortcut, &QShortcut::activated, this, &MainWindow::toggleDevTools);
 }
 
 void MainWindow::connectTab(QWebEngineView *view)
@@ -255,6 +279,10 @@ void MainWindow::onCurrentTabChanged(int index)
         m_addressBar->setUrl(view->url());
         setWindowTitle(view->title().isEmpty() ? "scowser" : view->title() + " — scowser");
         updateStarButton();
+
+        // DevTools follow the active tab
+        if (m_devToolsPanel->isVisible())
+            m_devToolsPanel->attachToPage(view->page());
     }
 }
 
@@ -384,6 +412,10 @@ void MainWindow::onSaveSessionRequested(int index)
     view->setPage(newPage);
     view->load(url);
 
+    // Re-attach DevTools if they were inspecting this tab's old page
+    if (m_devToolsPanel->isVisible() && view == m_tabWidget->currentWebView())
+        m_devToolsPanel->attachToPage(newPage);
+
     qDebug() << "MainWindow: Tab switched to persistent profile:" << urlStr;
 }
 
@@ -406,6 +438,10 @@ void MainWindow::onUnsaveSessionRequested(int index)
 
     view->setPage(newPage);
     view->load(url);
+
+    // Re-attach DevTools if they were inspecting this tab's old page
+    if (m_devToolsPanel->isVisible() && view == m_tabWidget->currentWebView())
+        m_devToolsPanel->attachToPage(newPage);
 
     qDebug() << "MainWindow: Tab switched back to ephemeral profile:" << url.toDisplayString();
 }
@@ -543,6 +579,24 @@ void MainWindow::toggleLogPanel()
 void MainWindow::toggleFavoritesPanel()
 {
     m_favoritesPanel->setVisible(!m_favoritesPanel->isVisible());
+}
+
+void MainWindow::toggleDevTools()
+{
+    if (m_devToolsPanel->isVisible()) {
+        m_devToolsPanel->hide();
+        m_devToolsPanel->detach();
+    } else {
+        attachDevToolsToCurrentTab();
+        m_devToolsPanel->show();
+    }
+}
+
+void MainWindow::attachDevToolsToCurrentTab()
+{
+    if (auto *view = m_tabWidget->currentWebView()) {
+        m_devToolsPanel->attachToPage(view->page());
+    }
 }
 
 void MainWindow::toggleFavoriteForCurrentPage()
