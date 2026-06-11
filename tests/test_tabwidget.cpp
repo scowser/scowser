@@ -4,7 +4,10 @@
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QTabBar>
+#include <QToolButton>
+#include <QWheelEvent>
 #include "ui/TabWidget.h"
+#include "ui/ScrollableTabBar.h"
 
 class TestTabWidget : public QObject {
     Q_OBJECT
@@ -22,8 +25,18 @@ private slots:
     void testUnsaveSessionSignal();
     void testTabCount();
     void testContextMenuOnBlankTabNoSignal();
+    void testWheelDoesNotChangeActiveTab();
+    void testWheelScrollsStrip();
+    void testWheelSmallDeltasAccumulate();
+    void testWheelDirectionChangeResetsAccumulation();
+    void testWheelNoOverflowIsSafe();
 
 private:
+    void sendWheel(QWidget *target, int deltaY);
+    void sendTrackpadWheel(QWidget *target, int deltaY);
+    void makeOverflowing(ScrollableTabBar &bar);
+    QToolButton *scrollButton(ScrollableTabBar &bar, Qt::ArrowType arrow);
+
     QWidget *m_container = nullptr;
 };
 
@@ -126,6 +139,124 @@ void TestTabWidget::testContextMenuOnBlankTabNoSignal()
     QVERIFY(unsaveSpy.isValid());
     QCOMPARE(saveSpy.count(), 0);
     QCOMPARE(unsaveSpy.count(), 0);
+}
+
+void TestTabWidget::sendWheel(QWidget *target, int deltaY)
+{
+    QWheelEvent event(QPointF(10, 10), target->mapToGlobal(QPointF(10, 10)),
+                      QPoint(), QPoint(0, deltaY),
+                      Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+    QApplication::sendEvent(target, &event);
+}
+
+void TestTabWidget::sendTrackpadWheel(QWidget *target, int deltaY)
+{
+    QWheelEvent event(QPointF(10, 10), target->mapToGlobal(QPointF(10, 10)),
+                      QPoint(0, deltaY), QPoint(0, deltaY),
+                      Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
+    QApplication::sendEvent(target, &event);
+}
+
+void TestTabWidget::makeOverflowing(ScrollableTabBar &bar)
+{
+    bar.setFixedWidth(200);
+    for (int i = 0; i < 20; ++i)
+        bar.addTab(QString("Tab %1").arg(i));
+    bar.show();
+    QApplication::processEvents();
+}
+
+QToolButton *TestTabWidget::scrollButton(ScrollableTabBar &bar, Qt::ArrowType arrow)
+{
+    for (auto *button : bar.findChildren<QToolButton *>()) {
+        if (button->arrowType() == arrow)
+            return button;
+    }
+    return nullptr;
+}
+
+void TestTabWidget::testWheelDoesNotChangeActiveTab()
+{
+    ScrollableTabBar bar;
+    makeOverflowing(bar);
+    bar.setCurrentIndex(0);
+
+    sendWheel(&bar, -120);
+    sendWheel(&bar, -120);
+    sendTrackpadWheel(&bar, -240);
+    sendWheel(&bar, 120);
+    QCOMPARE(bar.currentIndex(), 0);
+}
+
+void TestTabWidget::testWheelScrollsStrip()
+{
+    ScrollableTabBar bar;
+    makeOverflowing(bar);
+    bar.setCurrentIndex(0);
+
+    auto *rightButton = scrollButton(bar, Qt::RightArrow);
+    QVERIFY(rightButton != nullptr);
+    QVERIFY(rightButton->isEnabled());
+    QSignalSpy clickSpy(rightButton, &QToolButton::clicked);
+
+    // One full mouse-wheel notch scrolls the strip one step
+    sendWheel(&bar, -120);
+    QCOMPARE(clickSpy.count(), 1);
+    sendWheel(&bar, -120);
+    QCOMPARE(clickSpy.count(), 2);
+}
+
+void TestTabWidget::testWheelSmallDeltasAccumulate()
+{
+    ScrollableTabBar bar;
+    makeOverflowing(bar);
+
+    auto *rightButton = scrollButton(bar, Qt::RightArrow);
+    QVERIFY(rightButton != nullptr);
+    QSignalSpy clickSpy(rightButton, &QToolButton::clicked);
+
+    // Trackpad events (pixel delta + scroll phase) need 240 units per step
+    sendTrackpadWheel(&bar, -120);
+    QCOMPARE(clickSpy.count(), 0);
+    sendTrackpadWheel(&bar, -120);
+    QCOMPARE(clickSpy.count(), 1);
+
+    // Accumulator resets after a step; next partial delta doesn't scroll
+    sendTrackpadWheel(&bar, -120);
+    QCOMPARE(clickSpy.count(), 1);
+}
+
+void TestTabWidget::testWheelDirectionChangeResetsAccumulation()
+{
+    ScrollableTabBar bar;
+    makeOverflowing(bar);
+
+    auto *rightButton = scrollButton(bar, Qt::RightArrow);
+    QVERIFY(rightButton != nullptr);
+    QSignalSpy clickSpy(rightButton, &QToolButton::clicked);
+
+    sendTrackpadWheel(&bar, -200);
+    QCOMPARE(clickSpy.count(), 0);
+
+    // Reversing direction discards prior accumulation
+    sendTrackpadWheel(&bar, 200);
+    QCOMPARE(clickSpy.count(), 0);
+    sendTrackpadWheel(&bar, -200);
+    QCOMPARE(clickSpy.count(), 0);
+}
+
+void TestTabWidget::testWheelNoOverflowIsSafe()
+{
+    // Few tabs, no overflow: scroll buttons are disabled, wheel is a no-op
+    ScrollableTabBar bar;
+    bar.addTab("1");
+    bar.addTab("2");
+    bar.setCurrentIndex(0);
+
+    sendWheel(&bar, -120);
+    sendWheel(&bar, 120);
+    QCOMPARE(bar.currentIndex(), 0);
+    QCOMPARE(bar.count(), 2);
 }
 
 QTEST_MAIN(TestTabWidget)

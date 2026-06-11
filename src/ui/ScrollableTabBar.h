@@ -14,4 +14,7 @@ protected:
 
 private:
     void hideScrollButtons();
+    void scrollTabs(int direction);
+
+    int m_scrollAccumulator = 0;
 };
