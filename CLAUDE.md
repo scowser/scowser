@@ -48,7 +48,7 @@ src/
 ├── ui/
 │   ├── MainWindow.h/cpp       # Main browser window
 │   ├── TabWidget.h/cpp        # Tab bar and tab management
-│   ├── ScrollableTabBar.h/cpp # Tab bar with wheel/trackpad tab switching (delta accumulation for smooth scrolling)
+│   ├── ScrollableTabBar.h/cpp # Tab bar where wheel/trackpad scrolls the strip (never the active tab), with delta accumulation
 │   ├── AddressBar.h/cpp       # URL bar with security indicators
 │   ├── SettingsDialog.h/cpp   # Preferences dialog (General + Privacy + Security tabs)
 │   ├── DownloadsDialog.h/cpp  # Downloads list with progress and actions

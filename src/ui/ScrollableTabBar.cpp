@@ -38,20 +38,35 @@ void ScrollableTabBar::wheelEvent(QWheelEvent *event)
 
     m_scrollAccumulator += delta;
 
-    // Trackpads emit many small-delta events per gesture; require a full
-    // wheel notch (120 units) before switching so one swipe doesn't skip
-    // through several tabs.
-    constexpr int stepSize = 120;
+    // Trackpads emit many small-delta events per gesture; require two full
+    // wheel notches (240 units) of accumulation there so one swipe doesn't
+    // fly through the strip. Discrete mouse wheels (no pixel delta, no
+    // scroll phase) keep the one-notch-per-step feel.
+    const bool isTrackpad = !event->pixelDelta().isNull()
+        || event->phase() != Qt::NoScrollPhase;
+    const int stepSize = isTrackpad ? 240 : 120;
 
     if (m_scrollAccumulator >= stepSize) {
-        if (currentIndex() > 0)
-            setCurrentIndex(currentIndex() - 1);
+        scrollTabs(-1);
         m_scrollAccumulator = 0;
     } else if (m_scrollAccumulator <= -stepSize) {
-        if (currentIndex() < count() - 1)
-            setCurrentIndex(currentIndex() + 1);
+        scrollTabs(1);
         m_scrollAccumulator = 0;
     }
 
     event->accept();
+}
+
+void ScrollableTabBar::scrollTabs(int direction)
+{
+    // Scroll the strip without changing the active tab by driving the
+    // built-in (visually hidden) scroll buttons. QTabBar keeps their
+    // enabled state in sync with the scroll limits.
+    const Qt::ArrowType arrow = direction < 0 ? Qt::LeftArrow : Qt::RightArrow;
+    for (auto *button : findChildren<QToolButton *>()) {
+        if (button->arrowType() == arrow && button->isEnabled()) {
+            button->click();
+            return;
+        }
+    }
 }
