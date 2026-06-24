@@ -14,7 +14,7 @@ jobs:
     name: AddressSanitizer
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -41,7 +41,7 @@ jobs:
     name: UndefinedBehaviorSanitizer
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -67,7 +67,7 @@ jobs:
     name: ThreadSanitizer
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -93,7 +93,7 @@ jobs:
     name: ASan + UBSan Combined
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -121,7 +121,7 @@ jobs:
     name: Valgrind
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -159,7 +159,7 @@ jobs:
     name: Fuzz Testing (AFL++)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
